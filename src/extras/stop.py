@@ -1,3 +1,4 @@
-import RPi.GPIO as GPIO
+from alphabot.Alphabot import Alphabot
 
-GPIO.cleanup()
+alphabot = Alphabot()
+alphabot.stop()
