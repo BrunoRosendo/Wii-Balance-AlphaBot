@@ -1,5 +1,4 @@
 import RPi.GPIO as GPIO
-import time
 
 class Alphabot:
     def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, drivingPower=50, turningPower=30):
