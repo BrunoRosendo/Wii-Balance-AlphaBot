@@ -1,4 +1,3 @@
-#include <wiringPi.h>
 #include <stdlib.h>
 
 #include <signal.h>
@@ -42,8 +41,7 @@ int Sched_Init(void)
     for (int x = 0; x < NT; x++)
         Tasks[x].func = 0;
 
-    wiringPiSetupPhys();
-    signal(SIGALRM, alarmWakeup);
+    signal(SIGALRM, int_handler);
     ualarm(0, 1);
 }
 
