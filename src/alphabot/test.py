@@ -1,4 +1,4 @@
-from Alphabot import Alphabot
+from alphabot.Alphabot import Alphabot
 
 alphabot = Alphabot()
 forward = False

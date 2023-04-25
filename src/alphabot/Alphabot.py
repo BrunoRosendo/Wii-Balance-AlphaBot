@@ -20,10 +20,10 @@ class Alphabot:
         GPIO.setup(self.bin2, GPIO.OUT)
         GPIO.setup(self.ena, GPIO.OUT)
         GPIO.setup(self.enb, GPIO.OUT)
-        self.pwma = GPIO.PWM(self.ENA, 500)
-        self.pwmb = GPIO.PWM(self.ENB, 500)
-        self.pwma.start(self.PA)
-        self.pwmb.start(self.PB)
+        self.pwma = GPIO.PWM(self.ena, 500)
+        self.pwmb = GPIO.PWM(self.enb, 500)
+        self.pwma.start(self.drivingPower)
+        self.pwmb.start(self.drivingPower)
 
         self.stop()
 
