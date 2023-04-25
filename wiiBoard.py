@@ -13,6 +13,7 @@ import time
 import logging
 import collections
 import bluetooth
+import socket
 
 # Wiiboard Parameters
 CONTINUOUS_REPORTING    = b'\x04'
@@ -42,7 +43,7 @@ logger = logging.getLogger(__name__)
 handler = logging.StreamHandler() # or RotatingFileHandler
 handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
 logger.addHandler(handler)
-logger.setLevel(logging.INFO) # or DEBUG
+logger.setLevel(logging.DEBUG) # or DEBUG
 
 b2i = lambda b: int(b.encode("hex"), 16)
 
@@ -54,8 +55,8 @@ def discover(duration=6, prefix=BLUETOOTH_NAME):
 
 class Wiiboard:
     def __init__(self, address=None):
-        self.controlsocket = bluetooth.BluetoothSocket(bluetooth.L2CAP)
-        self.receivesocket = bluetooth.BluetoothSocket(bluetooth.L2CAP)
+        self.controlSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
+        self.receiveSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
         self.calibration = [[1e4]*4]*3
         self.calibration_requested = False
         self.light_state = False
@@ -66,19 +67,23 @@ class Wiiboard:
             self.connect(address)
     def connect(self, address):
         logger.info("Connecting to %s", address)
-        self.controlsocket.connect((address, 0x11))
-        self.receivesocket.connect((address, 0x13))
+        self.controlSocket.connect((address, 0x11))
+        self.receiveSocket.connect((address, 0x13))
+        logger.info("Connected sockets")
+
         logger.debug("Sending mass calibration request")
         self.send(COMMAND_READ_REGISTER, b"\x04\xA4\x00\x24\x00\x18")
         self.calibration_requested = True
         logger.info("Wait for calibration")
+
         logger.debug("Connect to the balance extension, to read mass data")
         self.send(COMMAND_REGISTER, b"\x04\xA4\x00\x40\x00")
         logger.debug("Request status")
+
         self.status()
-        self.light(0)
+        self.light(True)
     def send(self, *data):
-        self.controlsocket.send(b'\x52'+b''.join(data))
+        self.controlSocket.send(b'\x52'+b''.join(data))
     def reporting(self, mode=CONTINUOUS_REPORTING, extension=EXTENSION_8BYTES):
         self.send(COMMAND_REPORTING, mode, extension)
     def light(self, on_off=True):
@@ -117,8 +122,8 @@ class Wiiboard:
         }
     def loop(self):
         logger.debug("Starting the receive loop")
-        while self.running and self.receivesocket:
-            data = self.receivesocket.recv(25)
+        while self.running and self.receiveSocket:
+            data = self.receiveSocket.recv(25)
             logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:
                 continue
@@ -159,8 +164,8 @@ class Wiiboard:
         logger.info("Button released")
     def close(self):
         self.running = False
-        if self.receivesocket: self.receivesocket.close()
-        if self.controlsocket: self.controlsocket.close()
+        if self.receiveSocket: self.receiveSocket.close()
+        if self.controlSocket: self.controlSocket.close()
     def __del__(self):
         self.close()
     #### with statement ####
