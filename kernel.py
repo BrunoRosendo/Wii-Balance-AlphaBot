@@ -1,8 +1,7 @@
 from task import Task
-import pigpio
+from machine import Timer
 
-TIMER_FREQUENCY = 1000 # 1kHz
-
+timer = None
 tasks = []
 current_task = 0
 
@@ -20,10 +19,8 @@ def t3():
 
 def Sched_Init():
     # TODO configure interrupts and stuff on PI
-    pi = pigpio.pi('soft', 8888)
-    timer_handle = pi.hardware_timer(0)
-    timer_handle.frequency(TIMER_FREQUENCY)
-    timer_handle.callback(Sched_Interrupt)
+    global timer
+    timer = Timer(period=1, mode=Timer.PERIODIC, callback=Sched_Interrupt)
     return
 
 def Sched_AddTask(func, delay, period):
@@ -40,6 +37,7 @@ def Sched_Schedule():
             task.delay = task.period - 1
 
 def Sched_Dispatch():
+    global current_task
     prev_task = current_task
     for (i, task) in enumerate(tasks):
         if task.func == None or task.counter == 0:
@@ -70,3 +68,5 @@ setup()
 
 while True:
     pass # keep it running
+
+timer.deinit()
