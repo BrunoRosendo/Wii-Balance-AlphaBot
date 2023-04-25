@@ -8,24 +8,24 @@ class Camera:
         self.kit = ServoKit(channels=16) # number of channels (hardware)
     
     """
-    Changes the tilt angle (left to right), between 20 and 150
+    Changes the tilt angle (left to right), between 0 and 150
     """
     def tilt(self, angle):
         if angle > 150:
             self.kit.servo[0].angle = 150
-        elif angle < 20:
-            self.kit.servo[0].angle = 20
+        elif angle < 0:
+            self.kit.servo[0].angle = 0
         else:
             self.kit.servo[0].angle = angle
 
     """
-    Changes the pan angle (top to bottom), between 20 and 150
+    Changes the pan angle (top to bottom), between 0 and 150
     """
     def pan(self, angle):
         if angle > 150:
             self.kit.servo[1].angle = 150
-        elif angle < 20:
-            self.kit.servo[1].angle = 20
+        elif angle < 0:
+            self.kit.servo[1].angle = 0
         else:
             self.kit.servo[1].angle = angle
 
@@ -34,7 +34,7 @@ class Camera:
     """
     def reset(self):
         self.tilt(0)
-        self.pan(0)
+        self.pan(30)
 
     """
     Starts the camera preview
