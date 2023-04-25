@@ -1,6 +1,6 @@
 from task import Task
 import threading
-from alphabot.test import toggle_forward_backwards
+from alphabot.test import all_actions
 
 timer = None
 tasks = []
@@ -63,7 +63,7 @@ def setup():
     Sched_Init()
 
     # TODO this is using deciseconds but needs to use ms later
-    Sched_AddTask(toggle_forward_backwards, 0, 10)
+    Sched_AddTask(all_actions, 0, 50)
 
 def Sched_Interrupt():
     stop_interrupts()

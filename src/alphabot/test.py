@@ -11,3 +11,18 @@ def toggle_forward_backwards():
     else:
         alphabot.drive_forward()
         forward = True
+
+action = 0
+def all_actions():
+    global action
+    if action == 0:
+        alphabot.drive_forward()
+    elif action == 1:
+        alphabot.drive_backwards()
+    elif action == 2:
+        alphabot.drive_left()
+    elif action == 3:
+        alphabot.drive_right()
+    elif action == 4:
+        alphabot.stop()
+    action = (action + 1) % 5
