@@ -1,6 +1,6 @@
 from task import Task
 import threading
-from alphabot.test import all_actions
+from src.alphabot.tasks import all_actions, init_camera
 
 timer = None
 tasks = []
@@ -59,7 +59,9 @@ def Sched_Dispatch():
 
 def setup():
     print("setting up")
-    # TODO initialize pins
+    # TODO initialize pins and bot
+    init_camera()
+
     Sched_Init()
 
     # TODO this is using deciseconds but needs to use ms later

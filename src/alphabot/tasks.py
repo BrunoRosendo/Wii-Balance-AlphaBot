@@ -1,6 +1,8 @@
 from alphabot.Alphabot import Alphabot
+from alphabot.Camera import Camera
 
 alphabot = Alphabot()
+cam = Camera()
 forward = False
 
 def toggle_forward_backwards():
@@ -26,3 +28,6 @@ def all_actions():
     elif action == 4:
         alphabot.stop()
     action = (action + 1) % 5
+
+def init_camera():
+    cam.reset()

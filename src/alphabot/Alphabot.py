@@ -27,7 +27,9 @@ class Alphabot:
 
         self.stop()
 
-    # drives forward, using both wheels
+    """
+    Drives forward, using both wheels
+    """
     def drive_forward(self):
         self.pwma.ChangeDutyCycle(self.drivingPower)
         self.pwmb.ChangeDutyCycle(self.drivingPower)
@@ -36,7 +38,9 @@ class Alphabot:
         GPIO.output(self.bin1, GPIO.LOW)
         GPIO.output(self.bin2, GPIO.HIGH)
 
-    # drives backwards, using both wheels
+    """
+    Drives backwards, using both wheels
+    """
     def drive_backwards(self):
         self.pwma.ChangeDutyCycle(self.drivingPower)
         self.pwmb.ChangeDutyCycle(self.drivingPower)
@@ -45,7 +49,9 @@ class Alphabot:
         GPIO.output(self.bin1, GPIO.HIGH)
         GPIO.output(self.bin2, GPIO.LOW)
 
-    # drives while turning to the left
+    """
+    Drives while turning to the left
+    """
     def drive_left(self):
         self.pwma.ChangeDutyCycle(self.turningPower)
         self.pwmb.ChangeDutyCycle(self.turningPower)
@@ -54,7 +60,9 @@ class Alphabot:
         GPIO.output(self.bin1, GPIO.LOW)
         GPIO.output(self.bin2, GPIO.HIGH)
 
-    # drives while turning to the right
+    """
+    Drives while turning to the right
+    """
     def drive_right(self):
         self.pwma.ChangeDutyCycle(self.turningPower)
         self.pwmb.ChangeDutyCycle(self.turningPower)
@@ -63,7 +71,9 @@ class Alphabot:
         GPIO.output(self.bin1, GPIO.HIGH)
         GPIO.output(self.bin2, GPIO.LOW)
 
-    # stops both wheels and the pwm signal
+    """
+    Stops both wheels and the pwm signal
+    """
     def stop(self):
         self.pwma.ChangeDutyCycle(0)
         self.pwmb.ChangeDutyCycle(0)

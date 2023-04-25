@@ -1,0 +1,39 @@
+import RPi.GPIO as GPIO
+from adafruit_servokit import ServoKit
+from picamera import PiCamera
+
+class Camera:
+    def __init__(self):
+        self.cam = PiCamera()
+        self.servo = ServoKit(channels=16) # number of channels (hardware)
+
+        self.cam.start_preview()
+    
+    """
+    Changes the tilt angle (left to right), between 20 and 150
+    """
+    def tilt(self, angle):
+        if angle > 150:
+            self.kit.servo[0].angle = 150
+        elif angle < 20:
+            self.kit.servo[0].angle = 20
+        else:
+            self.kit.servo[0].angle = angle
+
+    """
+    Changes the pan angle (top to bottom), between 20 and 150
+    """
+    def pan(self, angle):
+        if angle > 150:
+            self.kit.servo[1].angle = 150
+        elif angle < 20:
+            self.kit.servo[1].angle = 20
+        else:
+            self.kit.servo[1].angle = angle
+
+    """
+    Resets the camera to the default position
+    """
+    def reset(self):
+        self.tilt(140)
+        self.pan(90)
