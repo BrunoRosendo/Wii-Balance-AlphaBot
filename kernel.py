@@ -1,4 +1,5 @@
 from task import Task
+import threading
 
 tasks = []
 current_task = 0
@@ -18,7 +19,7 @@ def t3():
 def Sched_Init():
     print("initing scheduler")
     # TODO configure interrupts and stuff on PI
-    
+    threading.Timer(1, Sched_Interrupt).start()
     return
 
 def Sched_AddTask(func, delay, period):
