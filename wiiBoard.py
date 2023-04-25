@@ -14,6 +14,7 @@ import logging
 import collections
 import bluetooth
 import socket
+import struct
 
 # Wiiboard Parameters
 CONTINUOUS_REPORTING    = b'\x04'
@@ -21,10 +22,10 @@ COMMAND_LIGHT           = b'\x11'
 COMMAND_REPORTING       = b'\x12'
 COMMAND_REQUEST_STATUS  = b'\x15'
 COMMAND_REGISTER        = b'\x16'
-COMMAND_READ_REGISTER   = b'\x17'
-INPUT_STATUS            = b'\x20'
-INPUT_READ_DATA         = b'\x21'
-EXTENSION_8BYTES        = b'\x32'
+COMMAND_READ_REGISTER   = b'\x17'   # TODO: Check if should change to hex
+INPUT_STATUS            = 0x20
+INPUT_READ_DATA         = 0x21
+EXTENSION_8BYTES        = 0x32
 BUTTON_DOWN_MASK        = 0x08
 LED1_MASK               = 0x10
 BATTERY_MAX             = 200.0
@@ -81,11 +82,20 @@ class Wiiboard:
         logger.debug("Request status")
 
         self.status()
-        self.light(True)
+        self.light(False)
+    # *args accepts any number of arguments
     def send(self, *data):
+        print("Arg:", data)
+        self.controlSocket.send(b'\x52'+b''.join(data))
+    def sendIntData(self, intData):
+        # convert data to bytes
+        data = int.to_bytes(intData, byteorder='big')
+        
         self.controlSocket.send(b'\x52'+b''.join(data))
     def reporting(self, mode=CONTINUOUS_REPORTING, extension=EXTENSION_8BYTES):
-        self.send(COMMAND_REPORTING, mode, extension)
+        byteExtension = struct.pack("B", extension)
+        print("byteExtension:", byteExtension)
+        self.send(COMMAND_REPORTING, mode, byteExtension)
     def light(self, on_off=True):
         self.send(COMMAND_LIGHT, b'\x10' if on_off else b'\x00')
     def status(self):
@@ -115,10 +125,10 @@ class Wiiboard:
             self.on_released()
     def get_mass(self, data):
         return {
-            'top_right':    self.calc_mass(b2i(data[0:2]), TOP_RIGHT),
-            'bottom_right': self.calc_mass(b2i(data[2:4]), BOTTOM_RIGHT),
-            'top_left':     self.calc_mass(b2i(data[4:6]), TOP_LEFT),
-            'bottom_left':  self.calc_mass(b2i(data[6:8]), BOTTOM_LEFT),
+            'top_right':    self.calc_mass(data[0:2], TOP_RIGHT),
+            'bottom_right': self.calc_mass(data[2:4], BOTTOM_RIGHT),
+            'top_left':     self.calc_mass(data[4:6], TOP_LEFT),
+            'bottom_left':  self.calc_mass(data[6:8], BOTTOM_LEFT),
         }
     def loop(self):
         logger.debug("Starting the receive loop")
@@ -127,18 +137,34 @@ class Wiiboard:
             logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:
                 continue
-            input_type = data[1]
+            
+            """ hexCodes = [int(data.hex()[i:i+2], 16) for i in range(0, len(data.hex()), 2)]
+            input_type = hexCodes[1]
+
+            print("hexCodes", hexCodes)
+            print("input_type", input_type) """
+
+            byteCodes = [int(data[i]) for i in range(0, len(data))]
+            print("byteCodes", byteCodes, len(data))
+            input_type = data[1] 
+
+            print("input_type", input_type)
             if input_type == INPUT_STATUS:
-                self.battery = b2i(data[7:9]) / BATTERY_MAX
+                batteryLevel = data[7]  # Get byte 7 from the packet
+                print("[INPUT_TYPE] batteryLevel", batteryLevel)
+                self.battery = batteryLevel / BATTERY_MAX
                 # 0x12: on, 0x02: off/blink
-                self.light_state = b2i(data[4]) & LED1_MASK == LED1_MASK
+                print("[INPUT_TYPE] data[4]", data[4])
+                self.light_state = data[4] & LED1_MASK == LED1_MASK
                 self.on_status()
             elif input_type == INPUT_READ_DATA:
                 logger.debug("Got calibration data")
                 if self.calibration_requested:
-                    length = b2i(data[4]) / 16 + 1
+                    print("[INPUT_READ_DATA] data[4]", data[4])
+                    length = int(data[4] / 16 + 1)
+                    print("[INPUT_READ_DATA] length:", length)
                     data = data[7:7 + length]
-                    cal = lambda d: [b2i(d[j:j+2]) for j in [0, 2, 4, 6]]
+                    cal = lambda d: [d[j:j+2] for j in [0, 2, 4, 6]]
                     if length == 16: # First packet of calibration data
                         self.calibration = [cal(data[0:8]), cal(data[8:16]), [1e4]*4]
                     elif length < 16: # Second packet of calibration data
@@ -146,7 +172,8 @@ class Wiiboard:
                         self.calibration_requested = False
                         self.on_calibrated()
             elif input_type == EXTENSION_8BYTES:
-                self.check_button(b2i(data[2:4]))
+                print("[EXTENSION] EXTENSION_8BYTES")
+                self.check_button(data[2:4])
                 self.on_mass(self.get_mass(data[4:12]))
     def on_status(self):
         self.reporting() # Must set the reporting type after every status report
