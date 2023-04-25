@@ -151,7 +151,11 @@ class Wiiboard:
                               float((calibration[2] -
                                      calibration[1])))
     def check_button(self, state):
-        if state == BUTTON_DOWN_MASK:
+        state_parsed = [state[i] for i in range(len(state))]
+        print("Button state parsed:", state_parsed)
+        # Only the second byte of the state is the button state
+        btn_state = state_parsed[1] 
+        if btn_state == BUTTON_DOWN_MASK:
             if not self.button_down:
                 self.button_down = True
                 self.on_pressed()
@@ -188,6 +192,7 @@ class Wiiboard:
 
             print("input_type", input_type)
             if input_type == INPUT_STATUS:
+                # Handler for Status Messages
                 batteryLevel = data[7]  # Get byte 7 from the packet
                 print("[INPUT_TYPE] batteryLevel", batteryLevel)
                 self.battery = batteryLevel / BATTERY_MAX
@@ -196,6 +201,7 @@ class Wiiboard:
                 self.light_state = data[4] & LED1_MASK == LED1_MASK
                 self.on_status()
             elif input_type == INPUT_READ_DATA:
+                # Handler for calibration data
                 logger.debug("Got calibration data")
                 if self.calibration_requested:
                     # print("[INPUT_READ_DATA] data[4]", data[4])
@@ -210,6 +216,7 @@ class Wiiboard:
                         self.calibration_requested = False
                         self.on_calibrated()
             elif input_type == EXTENSION_8BYTES:
+                # Handler for Button and Mass data
                 print("[EXTENSION] EXTENSION_8BYTES")
                 self.check_button(data[2:4])
                 massVal = self.get_mass(data[4:12])
@@ -223,7 +230,6 @@ class Wiiboard:
         logger.info("Board calibrated: %s", str(self.calibration))
         self.light(1)
     def on_mass(self, mass):
-        print("[ON_MASS] mass:", mass)
         logger.debug("New mass data: %s", str(mass))
     def on_pressed(self):
         logger.info("Button pressed")
