@@ -43,7 +43,9 @@ class Camera:
         self.cam.preview()
     
     """
-    Stops the camera preview
+    Stops the camera preview and servo
     """
-    def stop_preview(self):
+    def stop(self):
         self.cam.stop_preview()
+        self.kit.servo[0].angle = None
+        self.kit.servo[1].angle = None
