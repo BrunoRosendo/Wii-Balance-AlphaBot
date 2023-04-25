@@ -100,11 +100,35 @@ class Wiiboard:
         self.send(COMMAND_LIGHT, b'\x10' if on_off else b'\x00')
     def status(self):
         self.send(COMMAND_REQUEST_STATUS, b'\x00')
+        
     def calc_mass(self, raw, pos):
+        '''
+        Calculate the mass read by the sensor
+
+        Parameters:
+            raw: bytes[2]
+                raw data read by the sensor
+            pos: int in [0, 3]
+                Sensor Position (TOP_RIGHT, BOTTOM_RIGHT, TOP_LEFT, BOTTOM_LEFT)
+
+        Returns:
+            mass: mass read by the sensor
+        '''
+        print("[Calc_Mass]raw:", raw, "rawType:", type(raw))
+
+        # convert raw data (bytes) to int
+        parsed_mass = [raw[i] for i in range(len(raw))]
+        print("[Calc_Mass]parsed_mass:", parsed_mass, "parsed_massType:", type(parsed_mass))
+        
+        # Convert Calibration data to int
+        calibration = [struct.unpack_from("B", self.calibration[i][pos]) for i in range(len(self.calibration))]
+        # calibration = [ calibration [i] for i in range(len(calibration))]
+        print("[Calc_Mass]Calibration:", calibration)
+        
         # Calculates the Kilogram weight reading from raw data at position pos
         # calibration[0] is calibration values for 0kg
         # calibration[1] is calibration values for 17kg
-        # calibration[2] is calibration values for 34kg
+        # calibration[2] is calibratioposition of the sensorn values for 34kg
         if raw < self.calibration[0][pos]:
             return 0.0
         elif raw < self.calibration[1][pos]:
@@ -124,6 +148,9 @@ class Wiiboard:
             self.button_down = False
             self.on_released()
     def get_mass(self, data):
+        # print("[Get_Mass] data:", data)
+        mass_data = [data[i] for i in range(len(data))]
+        # print("[Get_Mass] mass_data:", mass_data)
         return {
             'top_right':    self.calc_mass(data[0:2], TOP_RIGHT),
             'bottom_right': self.calc_mass(data[2:4], BOTTOM_RIGHT),
