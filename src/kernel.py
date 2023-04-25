@@ -1,8 +1,6 @@
 from task import Task
 import threading
 from alphabot.test import toggle_forward_backwards
-import RPi.GPIO as GPIO
-import time
 
 timer = None
 tasks = []
@@ -75,8 +73,5 @@ def Sched_Interrupt():
 
 setup()
 
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    GPIO.cleanup()
+while True:
+    pass # keep it running
