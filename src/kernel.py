@@ -1,6 +1,6 @@
-from task import Task
+from Task import Task
 import threading
-from src.alphabot.tasks import all_actions, init_camera
+from alphabot.tasks import all_actions, init_camera
 
 timer = None
 tasks = []
