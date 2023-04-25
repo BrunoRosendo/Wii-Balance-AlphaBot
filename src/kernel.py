@@ -1,21 +1,10 @@
 from task import Task
 import threading
+from alphabot.test import toggle_forward_backwards
 
 timer = None
 tasks = []
 current_task = 0
-
-def t1():
-    print("hello world 1sec")
-    return
-
-def t2():
-    print("hello world 5secs")
-    return
-
-def t3():
-    print("hello world 10secs")
-    return
 
 def set_interrupts():
     global timer
@@ -73,10 +62,8 @@ def setup():
     # TODO initialize pins
     Sched_Init()
 
-    # TODO this is using seconds but needs to use ms later
-    Sched_AddTask(t1, 0, 10)
-    Sched_AddTask(t2, 0, 50)
-    Sched_AddTask(t3, 0, 100)
+    # TODO this is using deciseconds but needs to use ms later
+    Sched_AddTask(toggle_forward_backwards, 0, 10)
 
 def Sched_Interrupt():
     stop_interrupts()
