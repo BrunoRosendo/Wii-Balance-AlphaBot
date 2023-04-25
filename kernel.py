@@ -16,10 +16,13 @@ def t3():
     print("hello world 10secs")
     return
 
+def set_timer():
+    threading.Timer(1, Sched_Interrupt).start()
+
 def Sched_Init():
     print("initing scheduler")
     # TODO configure interrupts and stuff on PI
-    threading.Timer(1, Sched_Interrupt).start()
+    set_timer()
     return
 
 def Sched_AddTask(func, delay, period):
@@ -67,6 +70,7 @@ def Sched_Interrupt():
     print("interrupting")
     Sched_Schedule()
     Sched_Dispatch()
+    set_timer()
 
 setup()
 
