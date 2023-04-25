@@ -18,15 +18,18 @@ def t3():
     return
 
 def Sched_Init():
+    print("initing scheduler")
     # TODO configure interrupts and stuff on PI
     global timer
     timer = Timer(period=1, mode=Timer.PERIODIC, callback=Sched_Interrupt)
     return
 
 def Sched_AddTask(func, delay, period):
+    print("adding task")
     tasks.append(Task(func, delay, period))
 
 def Sched_Schedule():
+    print("scheduling")
     for task in tasks:
         if task.func == None:
             continue
@@ -37,6 +40,7 @@ def Sched_Schedule():
             task.delay = task.period - 1
 
 def Sched_Dispatch():
+    print("dispatching")
     global current_task
     prev_task = current_task
     for (i, task) in enumerate(tasks):
@@ -52,6 +56,7 @@ def Sched_Dispatch():
             tasks.remove(task)
 
 def setup():
+    print("setting up")
     # TODO initialize pins
     Sched_Init()
 
@@ -61,6 +66,7 @@ def setup():
     Sched_AddTask(t3, 0, 10000)
 
 def Sched_Interrupt():
+    print("interrupting")
     Sched_Schedule()
     Sched_Dispatch()
 
