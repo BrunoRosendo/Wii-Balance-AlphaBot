@@ -6,8 +6,6 @@ class Camera:
     def __init__(self):
         self.cam = PiCamera()
         self.servo = ServoKit(channels=16) # number of channels (hardware)
-
-        self.cam.start_preview()
     
     """
     Changes the tilt angle (left to right), between 20 and 150
@@ -35,5 +33,12 @@ class Camera:
     Resets the camera to the default position
     """
     def reset(self):
+        print("resetting camera")
         self.tilt(140)
         self.pan(90)
+    
+    """
+    Starts the camera preview
+    """
+    def preview(self):
+        self.cam.preview()

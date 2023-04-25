@@ -31,3 +31,4 @@ def all_actions():
 
 def init_camera():
     cam.reset()
+    cam.preview()
