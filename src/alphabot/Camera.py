@@ -34,8 +34,8 @@ class Camera:
     """
     def reset(self):
         print("resetting camera")
-        self.tilt(140)
-        self.pan(90)
+        self.tilt(0)
+        self.pan(0)
     
     """
     Starts the camera preview
