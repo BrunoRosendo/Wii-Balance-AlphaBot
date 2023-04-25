@@ -1,14 +1,29 @@
 from task import Task
+import pigpio
+
+TIMER_FREQUENCY = 1000 # 1kHz
 
 tasks = []
 current_task = 0
 
 def t1():
-    print("hello world")
+    print("hello world 1sec")
+    return
+
+def t2():
+    print("hello world 5secs")
+    return
+
+def t3():
+    print("hello world 10secs")
     return
 
 def Sched_Init():
     # TODO configure interrupts and stuff on PI
+    pi = pigpio.pi()
+    timer_handle = pi.hardware_timer(0)
+    timer_handle.frequency(TIMER_FREQUENCY)
+    timer_handle.callback(Sched_Interrupt)
     return
 
 def Sched_AddTask(func, delay, period):
@@ -44,8 +59,12 @@ def setup():
 
     # TODO add tasks
     Sched_AddTask(t1, 0, 1000)
+    Sched_AddTask(t2, 0, 5000)
+    Sched_AddTask(t3, 0, 10000)
 
-# TODO subscribe timer interrupts and call Sched_Schedule() and Sched_Dispatch()
+def Sched_Interrupt():
+    Sched_Schedule()
+    Sched_Dispatch()
 
 setup()
 
