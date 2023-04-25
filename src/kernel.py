@@ -1,6 +1,7 @@
 from Task import Task
 import threading
 from alphabot.tasks import all_actions, init_camera
+import time
 
 timer = None
 tasks = []
@@ -76,4 +77,4 @@ def Sched_Interrupt():
 setup()
 
 while True:
-    pass # keep it running
+    time.sleep(5) # keep it running
