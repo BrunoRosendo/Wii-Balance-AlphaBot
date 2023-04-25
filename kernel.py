@@ -20,7 +20,7 @@ def t3():
 
 def Sched_Init():
     # TODO configure interrupts and stuff on PI
-    pi = pigpio.pi()
+    pi = pigpio.pi('soft', 8888)
     timer_handle = pi.hardware_timer(0)
     timer_handle.frequency(TIMER_FREQUENCY)
     timer_handle.callback(Sched_Interrupt)
