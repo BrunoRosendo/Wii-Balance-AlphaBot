@@ -1,4 +1,4 @@
-from alphabot.Alphabot import Alphabot
+from Alphabot import Alphabot
 
 alphabot = Alphabot()
 alphabot.stop()
