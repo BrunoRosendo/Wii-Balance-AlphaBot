@@ -5,7 +5,7 @@ from picamera import PiCamera
 class Camera:
     def __init__(self):
         self.cam = PiCamera()
-        self.servo = ServoKit(channels=16) # number of channels (hardware)
+        self.kit = ServoKit(channels=16) # number of channels (hardware)
     
     """
     Changes the tilt angle (left to right), between 20 and 150
