@@ -83,7 +83,7 @@ def setColor(color):
 class Servers(SRH): 
 	def handle(self): 
 		global HStep,VStep,flag 
-		print 'got connection from ',self.client_address  
+		print('got connection from ', self.client_address)
 		self.wfile.write('connection %s:%s at %s succeed!' % (host,port,ctime()))  
 		while True:  
 			data = self.request.recv(1024)  
@@ -132,7 +132,7 @@ class Servers(SRH):
 						Ab.setPWMB(value);
 				except:
 					print("Command error")
-			print data   
+			print(data)
 			#print "recv from ", self.client_address[0]  
 			self.request.send(data)  
 			
@@ -183,6 +183,6 @@ t = threading.Timer(0.02, timerfunc)
 t.setDaemon(True)
 t.start()
 
-print 'server is running....'  
+print('server is running....')
 server = SocketServer.ThreadingTCPServer(addr,Servers)  
 server.serve_forever()  
