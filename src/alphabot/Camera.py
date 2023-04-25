@@ -33,12 +33,17 @@ class Camera:
     Resets the camera to the default position
     """
     def reset(self):
-        print("resetting camera")
         self.tilt(0)
         self.pan(0)
-    
+
     """
     Starts the camera preview
     """
     def preview(self):
         self.cam.preview()
+    
+    """
+    Stops the camera preview
+    """
+    def stop_preview(self):
+        self.cam.stop_preview()
