@@ -40,7 +40,7 @@ class Camera:
     Starts the camera preview
     """
     def preview(self):
-        self.cam.preview()
+        self.cam.start_preview()
     
     """
     Stops the camera preview and servo
