@@ -46,7 +46,11 @@ handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG) # or DEBUG
 
-b2i = lambda b: int(b.encode("hex"), 16)
+def join_packet_bytes(bytes):
+    '''
+    Joins the bytes of a packet 2 by 2
+    '''
+    return [bytes[j: j+2] for j in [0, 2, 4, 6]]
 
 def discover(duration=6, prefix=BLUETOOTH_NAME):
     logger.info("Scan Bluetooth devices for %i seconds...", duration)
@@ -85,7 +89,7 @@ class Wiiboard:
         self.light(False)
     # *args accepts any number of arguments
     def send(self, *data):
-        print("Arg:", data)
+        # print("Arg:", data)
         self.controlSocket.send(b'\x52'+b''.join(data))
     def sendIntData(self, intData):
         # convert data to bytes
@@ -94,7 +98,7 @@ class Wiiboard:
         self.controlSocket.send(b'\x52'+b''.join(data))
     def reporting(self, mode=CONTINUOUS_REPORTING, extension=EXTENSION_8BYTES):
         byteExtension = struct.pack("B", extension)
-        print("byteExtension:", byteExtension)
+        # print("byteExtension:", byteExtension)
         self.send(COMMAND_REPORTING, mode, byteExtension)
     def light(self, on_off=True):
         self.send(COMMAND_LIGHT, b'\x10' if on_off else b'\x00')
@@ -114,31 +118,38 @@ class Wiiboard:
         Returns:
             mass: mass read by the sensor
         '''
-        print("[Calc_Mass]raw:", raw, "rawType:", type(raw))
+        # print("[Calc_Mass]raw:", raw, "rawType:", type(raw))
 
         # convert raw data (bytes) to int
-        parsed_mass = [raw[i] for i in range(len(raw))]
-        print("[Calc_Mass]parsed_mass:", parsed_mass, "parsed_massType:", type(parsed_mass))
+
+        parsed_mass_aux = raw[0:2]
+        # print("parsed_mass_aux", parsed_mass_aux)
+
+        parsed_mass = int.from_bytes(parsed_mass_aux, byteorder='big')
+        # print("[Calc_Mass] parsed_mass:", parsed_mass)
+
+        # Check the hexadecimal value of raw data (2 int format)
+        # parsed_mass_split = [parsed_mass_aux[i] for i in range(len(parsed_mass_aux))]
+        # print("[Calc_Mass] parsed_mass_split:", parsed_mass_split)
         
-        # Convert Calibration data to int
-        calibration = [struct.unpack_from("B", self.calibration[i][pos]) for i in range(len(self.calibration))]
-        # calibration = [ calibration [i] for i in range(len(calibration))]
-        print("[Calc_Mass]Calibration:", calibration)
+        # Convert Calibration data to int and extract the data from a specific pos
+        calibration = [ int.from_bytes( [self.calibration[i][pos][j] for j in range(len(self.calibration[i][pos])) ], byteorder="big") for i in range(len(self.calibration)) ]
+        # print("[Calc_Mass] Calibration:", calibration)
         
         # Calculates the Kilogram weight reading from raw data at position pos
         # calibration[0] is calibration values for 0kg
         # calibration[1] is calibration values for 17kg
         # calibration[2] is calibratioposition of the sensorn values for 34kg
-        if raw < self.calibration[0][pos]:
+        if parsed_mass < calibration[0]:
             return 0.0
-        elif raw < self.calibration[1][pos]:
-            return 17 * ((raw - self.calibration[0][pos]) /
-                         float((self.calibration[1][pos] -
-                                self.calibration[0][pos])))
-        else: # if raw >= self.calibration[1][pos]:
-            return 17 + 17 * ((raw - self.calibration[1][pos]) /
-                              float((self.calibration[2][pos] -
-                                     self.calibration[1][pos])))
+        elif parsed_mass < calibration[1]:
+            return 17 * ((parsed_mass - calibration[0]) /
+                         float((calibration[1] -
+                                calibration[0])))
+        else: # if parsed_mass >= calibration[1]:
+            return 17 + 17 * ((parsed_mass - calibration[1]) /
+                              float((calibration[2] -
+                                     calibration[1])))
     def check_button(self, state):
         if state == BUTTON_DOWN_MASK:
             if not self.button_down:
@@ -151,7 +162,7 @@ class Wiiboard:
         # print("[Get_Mass] data:", data)
         mass_data = [data[i] for i in range(len(data))]
         # print("[Get_Mass] mass_data:", mass_data)
-        return {
+        return  {
             'top_right':    self.calc_mass(data[0:2], TOP_RIGHT),
             'bottom_right': self.calc_mass(data[2:4], BOTTOM_RIGHT),
             'top_left':     self.calc_mass(data[4:6], TOP_LEFT),
@@ -161,7 +172,7 @@ class Wiiboard:
         logger.debug("Starting the receive loop")
         while self.running and self.receiveSocket:
             data = self.receiveSocket.recv(25)
-            logger.debug("socket.recv(25): %r", data)
+            # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:
                 continue
             
@@ -172,7 +183,7 @@ class Wiiboard:
             print("input_type", input_type) """
 
             byteCodes = [int(data[i]) for i in range(0, len(data))]
-            print("byteCodes", byteCodes, len(data))
+            # print("byteCodes", byteCodes, len(data))
             input_type = data[1] 
 
             print("input_type", input_type)
@@ -181,15 +192,15 @@ class Wiiboard:
                 print("[INPUT_TYPE] batteryLevel", batteryLevel)
                 self.battery = batteryLevel / BATTERY_MAX
                 # 0x12: on, 0x02: off/blink
-                print("[INPUT_TYPE] data[4]", data[4])
+                # print("[INPUT_TYPE] data[4]", data[4])
                 self.light_state = data[4] & LED1_MASK == LED1_MASK
                 self.on_status()
             elif input_type == INPUT_READ_DATA:
                 logger.debug("Got calibration data")
                 if self.calibration_requested:
-                    print("[INPUT_READ_DATA] data[4]", data[4])
+                    # print("[INPUT_READ_DATA] data[4]", data[4])
                     length = int(data[4] / 16 + 1)
-                    print("[INPUT_READ_DATA] length:", length)
+                    # print("[INPUT_READ_DATA] length:", length)
                     data = data[7:7 + length]
                     cal = lambda d: [d[j:j+2] for j in [0, 2, 4, 6]]
                     if length == 16: # First packet of calibration data
@@ -201,7 +212,8 @@ class Wiiboard:
             elif input_type == EXTENSION_8BYTES:
                 print("[EXTENSION] EXTENSION_8BYTES")
                 self.check_button(data[2:4])
-                self.on_mass(self.get_mass(data[4:12]))
+                massVal = self.get_mass(data[4:12])
+                self.on_mass(massVal)
     def on_status(self):
         self.reporting() # Must set the reporting type after every status report
         logger.info("Status: battery: %.2f%% light: %s", self.battery*100.0,
@@ -211,6 +223,7 @@ class Wiiboard:
         logger.info("Board calibrated: %s", str(self.calibration))
         self.light(1)
     def on_mass(self, mass):
+        print("[ON_MASS] mass:", mass)
         logger.debug("New mass data: %s", str(mass))
     def on_pressed(self):
         logger.info("Button pressed")
@@ -233,11 +246,13 @@ class WiiboardSampling(Wiiboard):
     def __init__(self, address=None, nsamples=N_SAMPLES):
         Wiiboard.__init__(self, address)
         self.samples = collections.deque([], nsamples)
+    """
+    # TODO: Check wtf is this 
     def on_mass(self, mass):
         self.samples.append(mass)
         self.on_sample()
     def on_sample(self):
-        time.sleep(0.01)
+        time.sleep(0.01) """
 
 # client class where we can re-define callbacks
 class WiiboardPrint(WiiboardSampling):
