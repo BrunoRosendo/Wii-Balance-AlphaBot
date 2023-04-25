@@ -1,13 +1,13 @@
 import RPi.GPIO as GPIO
 import time
 
-class AlphaBot(object):
+class AlphaBot2(object):
 	
-	def __init__(self,in1=13,in2=12,ena=6,in3=21,in4=20,enb=26):
-		self.IN1 = in1
-		self.IN2 = in2
-		self.IN3 = in3
-		self.IN4 = in4
+	def __init__(self,ain1=12,ain2=13,ena=6,bin1=20,bin2=21,enb=26):
+		self.AIN1 = ain1
+		self.AIN2 = ain2
+		self.BIN1 = bin1
+		self.BIN2 = bin2
 		self.ENA = ena
 		self.ENB = enb
 		self.PA  = 50
@@ -15,10 +15,10 @@ class AlphaBot(object):
 
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False)
-		GPIO.setup(self.IN1,GPIO.OUT)
-		GPIO.setup(self.IN2,GPIO.OUT)
-		GPIO.setup(self.IN3,GPIO.OUT)
-		GPIO.setup(self.IN4,GPIO.OUT)
+		GPIO.setup(self.AIN1,GPIO.OUT)
+		GPIO.setup(self.AIN2,GPIO.OUT)
+		GPIO.setup(self.BIN1,GPIO.OUT)
+		GPIO.setup(self.BIN2,GPIO.OUT)
 		GPIO.setup(self.ENA,GPIO.OUT)
 		GPIO.setup(self.ENB,GPIO.OUT)
 		self.PWMA = GPIO.PWM(self.ENA,500)
@@ -30,42 +30,45 @@ class AlphaBot(object):
 	def forward(self):
 		self.PWMA.ChangeDutyCycle(self.PA)
 		self.PWMB.ChangeDutyCycle(self.PB)
-		GPIO.output(self.IN1,GPIO.HIGH)
-		GPIO.output(self.IN2,GPIO.LOW)
-		GPIO.output(self.IN3,GPIO.HIGH)
-		GPIO.output(self.IN4,GPIO.LOW)
+		GPIO.output(self.AIN1,GPIO.LOW)
+		GPIO.output(self.AIN2,GPIO.HIGH)
+		GPIO.output(self.BIN1,GPIO.LOW)
+		GPIO.output(self.BIN2,GPIO.HIGH)
+
 
 	def stop(self):
 		self.PWMA.ChangeDutyCycle(0)
 		self.PWMB.ChangeDutyCycle(0)
-		GPIO.output(self.IN1,GPIO.LOW)
-		GPIO.output(self.IN2,GPIO.LOW)
-		GPIO.output(self.IN3,GPIO.LOW)
-		GPIO.output(self.IN4,GPIO.LOW)
+		GPIO.output(self.AIN1,GPIO.LOW)
+		GPIO.output(self.AIN2,GPIO.LOW)
+		GPIO.output(self.BIN1,GPIO.LOW)
+		GPIO.output(self.BIN2,GPIO.LOW)
 
 	def backward(self):
 		self.PWMA.ChangeDutyCycle(self.PA)
 		self.PWMB.ChangeDutyCycle(self.PB)
-		GPIO.output(self.IN1,GPIO.LOW)
-		GPIO.output(self.IN2,GPIO.HIGH)
-		GPIO.output(self.IN3,GPIO.LOW)
-		GPIO.output(self.IN4,GPIO.HIGH)
+		GPIO.output(self.AIN1,GPIO.HIGH)
+		GPIO.output(self.AIN2,GPIO.LOW)
+		GPIO.output(self.BIN1,GPIO.HIGH)
+		GPIO.output(self.BIN2,GPIO.LOW)
 
+		
 	def left(self):
 		self.PWMA.ChangeDutyCycle(30)
 		self.PWMB.ChangeDutyCycle(30)
-		GPIO.output(self.IN1,GPIO.LOW)
-		GPIO.output(self.IN2,GPIO.HIGH)
-		GPIO.output(self.IN3,GPIO.HIGH)
-		GPIO.output(self.IN4,GPIO.LOW)
+		GPIO.output(self.AIN1,GPIO.HIGH)
+		GPIO.output(self.AIN2,GPIO.LOW)
+		GPIO.output(self.BIN1,GPIO.LOW)
+		GPIO.output(self.BIN2,GPIO.HIGH)
+
 
 	def right(self):
 		self.PWMA.ChangeDutyCycle(30)
 		self.PWMB.ChangeDutyCycle(30)
-		GPIO.output(self.IN1,GPIO.HIGH)
-		GPIO.output(self.IN2,GPIO.LOW)
-		GPIO.output(self.IN3,GPIO.LOW)
-		GPIO.output(self.IN4,GPIO.HIGH)
+		GPIO.output(self.AIN1,GPIO.LOW)
+		GPIO.output(self.AIN2,GPIO.HIGH)
+		GPIO.output(self.BIN1,GPIO.HIGH)
+		GPIO.output(self.BIN2,GPIO.LOW)
 		
 	def setPWMA(self,value):
 		self.PA = value
@@ -77,25 +80,25 @@ class AlphaBot(object):
 		
 	def setMotor(self, left, right):
 		if((right >= 0) and (right <= 100)):
-			GPIO.output(self.IN1,GPIO.HIGH)
-			GPIO.output(self.IN2,GPIO.LOW)
+			GPIO.output(self.AIN1,GPIO.HIGH)
+			GPIO.output(self.AIN2,GPIO.LOW)
 			self.PWMA.ChangeDutyCycle(right)
 		elif((right < 0) and (right >= -100)):
-			GPIO.output(self.IN1,GPIO.LOW)
-			GPIO.output(self.IN2,GPIO.HIGH)
+			GPIO.output(self.AIN1,GPIO.LOW)
+			GPIO.output(self.AIN2,GPIO.HIGH)
 			self.PWMA.ChangeDutyCycle(0 - right)
 		if((left >= 0) and (left <= 100)):
-			GPIO.output(self.IN3,GPIO.HIGH)
-			GPIO.output(self.IN4,GPIO.LOW)
+			GPIO.output(self.BIN1,GPIO.HIGH)
+			GPIO.output(self.BIN2,GPIO.LOW)
 			self.PWMB.ChangeDutyCycle(left)
 		elif((left < 0) and (left >= -100)):
-			GPIO.output(self.IN3,GPIO.LOW)
-			GPIO.output(self.IN4,GPIO.HIGH)
+			GPIO.output(self.BIN1,GPIO.LOW)
+			GPIO.output(self.BIN2,GPIO.HIGH)
 			self.PWMB.ChangeDutyCycle(0 - left)
 
 if __name__=='__main__':
 
-	Ab = AlphaBot()
+	Ab = AlphaBot2()
 	Ab.forward()
 	try:
 		while True:
