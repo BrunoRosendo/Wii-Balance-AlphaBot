@@ -1,7 +1,5 @@
 from task import Task
-from machine import Timer
 
-timer = None
 tasks = []
 current_task = 0
 
@@ -20,8 +18,7 @@ def t3():
 def Sched_Init():
     print("initing scheduler")
     # TODO configure interrupts and stuff on PI
-    global timer
-    timer = Timer(period=1, mode=Timer.PERIODIC, callback=Sched_Interrupt)
+    
     return
 
 def Sched_AddTask(func, delay, period):
