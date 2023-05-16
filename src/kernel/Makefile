@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS = -Wall -Wextra
-INCLUDES = /usr/include/python3.10/
+INCLUDES = /usr/include/python3.9/
 LIBS =
 
 SOURCE = kernel.c
