@@ -34,6 +34,11 @@ int schedAddTask(PyObject *func, int delay, int period);
 void schedSchedule();
 
 /**
+ * Dispatches the tasks
+ */
+void schedDispatch();
+
+/**
  * Sets up the kernel and auxiliary modules
  */
 void setup();
