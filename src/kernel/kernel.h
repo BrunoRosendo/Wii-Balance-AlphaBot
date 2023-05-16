@@ -5,6 +5,7 @@
 #include <Python.h>
 
 #define MAX_TASKS 20
+#define TICK_RATE 1000
 
 typedef struct
 {
@@ -42,5 +43,10 @@ void schedDispatch();
  * Sets up the kernel and auxiliary modules
  */
 void setup();
+
+/**
+ * Timer interruption handler
+ */
+void timer_handler(int signum);
 
 #endif
