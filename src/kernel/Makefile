@@ -1,0 +1,19 @@
+CC=gcc
+CFLAGS = -Wall -Wextra
+INCLUDES = /usr/include/python3.10/
+LIBS =
+
+SOURCE = kernel.c
+SOURCE_OBJ = $(SOURCE:.c=.o)
+EXEC = kernel
+
+all: $(EXEC)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -I $(INCLUDES) -c $< -o $@
+
+$(EXEC): $(SOURCE_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(SOURCE_OBJ) $(LIBS)
+
+clean:
+	rm -rf $(EXEC) *.o *.d
