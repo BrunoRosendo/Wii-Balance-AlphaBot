@@ -57,4 +57,7 @@ def read_wii_data():
     else:
         print("No Response")
 
+def drive_alphabot():
+    alphabot.drive()
+
 

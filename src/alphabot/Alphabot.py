@@ -163,6 +163,28 @@ class Alphabot:
             elif horizDiff <= weightThreshold["HIGH"]:
                 self.horizDirection = horizDirection
                 self.turningPower = powerMap["HIGH"]
+
+    """
+    Decides the direction of the robot and drives accordingly
+    """
+    def drive(self):
+        if (self.vertDirection == MovDirection.IDLE and self.horizDirection == MovDirection.IDLE):
+            # Stop
+            self.stop()
+        elif (self.vertDirection == MovDirection.POSITIVE):
+            # Drive forward
+            self.drive_forward()
+        elif (self.vertDirection == MovDirection.NEGATIVE):
+            # Drive backwards
+            self.drive_backwards()
+        elif (self.horizDirection == MovDirection.POSITIVE):
+            # Drive right
+            self.drive_right()
+        elif (self.horizDirection == MovDirection.NEGATIVE):
+            # Drive left
+            self.drive_left()
+        else:
+           print("Error: Unknown direction")
         
 
         
