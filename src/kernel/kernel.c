@@ -44,7 +44,7 @@ void setup()
         return 1;
     }
     PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, "init_camera");
-    if (pFunc == NULL || !PyCallable_Check(pFunc)) {
+    if (initCameraFunc == NULL || !PyCallable_Check(initCameraFunc)) {
         if (PyErr_Occurred())
             PyErr_Print();
         return 1;
