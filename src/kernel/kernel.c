@@ -34,7 +34,7 @@ void schedInit()
     setitimer(ITIMER_REAL, &timer, NULL);
 }
 
-void setup()
+int setup()
 {
     Py_Initialize();
 
@@ -85,7 +85,7 @@ void timerHandler(int signum)
 
 int main()
 {
-    setup();
+    if (setup() != 0) return 1;
     while (1)
     {
         sleep(1);
