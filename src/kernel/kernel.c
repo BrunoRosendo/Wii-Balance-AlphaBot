@@ -99,7 +99,7 @@ int setup()
             PyErr_Print();
         return 1;
     }
-    if (schedAddTask(initCameraFunc, 0, 50) != 0) return 1;
+    if (schedAddTask(initCameraFunc, 0, 500) != 0) return 1;
     return 0;
 }
 

@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS = -Wall
 INCLUDES = /usr/include/python3.9/
-LIBS = -lpython3.x
+LIBS = -lpython3.9
 
 SOURCE = kernel.c
 SOURCE_OBJ = $(SOURCE:.c=.o)
