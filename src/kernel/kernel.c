@@ -69,7 +69,7 @@ int pythonInit()
     }
 
     // Import the tasks module and init functions
-    *tasksModule = PyImport_ImportModule("alphabot.tasks");
+    tasksModule = PyImport_ImportModule("alphabot.tasks");
     if (tasksModule == NULL) {
         PyErr_Print();
         return 1;
@@ -105,13 +105,13 @@ int setup()
 
 int schedAddTask(PyObject *func, int delay, int period)
 {
-    for (int i = 0; i < NT; i++)
+    for (int i = 0; i < MAX_TASKS; i++)
         if (!tasks[i].func)
         {
-            tasks[i].period = p;
-            tasks[i].delay = d;
+            tasks[i].period = period;
+            tasks[i].delay = delay;
             tasks[i].exec = 0;
-            tasks[i].func = f;
+            tasks[i].func = func;
             return i;
         }
     return -1;
@@ -119,7 +119,7 @@ int schedAddTask(PyObject *func, int delay, int period)
 
 void schedSchedule()
 {
-    for (int i = 0; i < NT; i++)
+    for (int i = 0; i < MAX_TASKS; i++)
     {
         if (tasks[i].func)
         {
@@ -147,7 +147,10 @@ void schedDispatch()
             tasks[i].exec = 0;
             curTask = i;
             blockInterrupts = 0;
-            tasks[i].func();
+
+            PyObject* args = PyTuple_New(0);
+            PyObject_CallObject(tasks[i].func, args);
+
             blockInterrupts = 1;
             curTask = prev_task;
             /* Delete task if one-shot */
