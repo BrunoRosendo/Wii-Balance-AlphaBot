@@ -6,13 +6,15 @@
 // variable used to ignore timer interruptions while scheduling tasks. It should be set to 0 before executing tasks
 int blockInterrupts = 0;
 
-SchedTask Tasks[MAX_TASKS];
+SchedTask tasks[MAX_TASKS];
 int curTask = MAX_TASKS;
 
-void schedInit()
+PyObject *tasksModule = NULL;
+
+int schedInit()
 {
     for (int i = 0; i < MAX_TASKS; i++)
-        Tasks[i].func = NULL;
+        tasks[i].func = NULL;
 
     struct sigaction sa;
     struct itimerval timer;
@@ -32,30 +34,30 @@ void schedInit()
     timer.it_interval.tv_usec = TICK_RATE;
 
     setitimer(ITIMER_REAL, &timer, NULL);
+
+    return 0;
 }
 
-int setup()
+int pythonInit()
 {
     Py_Initialize();
 
-    PyObject *pSysPath, *pModuleDir;
-
     // Import the 'sys' module
-    PyObject *pSysModule = PyImport_ImportModule("sys");
-    if (pSysModule == NULL) {
+    PyObject *sysModule = PyImport_ImportModule("sys");
+    if (sysModule == NULL) {
         PyErr_Print();
         return 1;
     }
 
     // Get the 'sys.path' list
-    pSysPath = PyObject_GetAttrString(pSysModule, "path");
+    PyObject *pSysPath = PyObject_GetAttrString(sysModule, "path");
     if (pSysPath == NULL || !PyList_Check(pSysPath)) {
         PyErr_Print();
         return 1;
     }
 
     // Append the directory containing the module to 'sys.path'
-    pModuleDir = PyUnicode_DecodeFSDefault("..");
+   PyObject * pModuleDir = PyUnicode_DecodeFSDefault("..");
     if (pModuleDir == NULL) {
         PyErr_Print();
         return 1;
@@ -66,8 +68,8 @@ int setup()
         return 1;
     }
 
-    // Import the module using its name
-    PyObject *tasksModule = PyImport_ImportModule("alphabot.tasks");
+    // Import the tasks module and init functions
+    *tasksModule = PyImport_ImportModule("alphabot.tasks");
     if (tasksModule == NULL) {
         PyErr_Print();
         return 1;
@@ -79,30 +81,80 @@ int setup()
             PyErr_Print();
         return 1;
     }
-
     PyObject* args = PyTuple_New(0);
     PyObject_CallObject(initCameraFunc, args);
 
-    schedInit();
+    return 0;
+}
+
+int setup()
+{
+    if (pythonInit() != 0) return 1;
+    if (schedInit() != 0) return 1;
     // TODO add tasks
 
+    PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, "all_actions");
+    if (initCameraFunc == NULL || !PyCallable_Check(initCameraFunc)) {
+        if (PyErr_Occurred())
+            PyErr_Print();
+        return 1;
+    }
+    if (schedAddTask(initCameraFunc, 0, 50) != 0) return 1;
     return 0;
 }
 
 int schedAddTask(PyObject *func, int delay, int period)
 {
-    // TODO port from arduino.ino
+    for (int i = 0; i < NT; i++)
+        if (!tasks[i].func)
+        {
+            tasks[i].period = p;
+            tasks[i].delay = d;
+            tasks[i].exec = 0;
+            tasks[i].func = f;
+            return i;
+        }
     return -1;
 }
 
 void schedSchedule()
 {
-    // TODO port from arduino.ino
+    for (int i = 0; i < NT; i++)
+    {
+        if (tasks[i].func)
+        {
+            if (tasks[i].delay)
+            {
+                tasks[i].delay--;
+            }
+            else
+            {
+                /* Schedule Task */
+                tasks[i].exec++;
+                tasks[i].delay = tasks[i].period - 1;
+            }
+        }
+    }
 }
 
 void schedDispatch()
 {
-    // TODO port from arduino.ino, call python functions, set blockInterrupts to 0 while calling another function
+    int prev_task = curTask;
+    for (int i = 0; i < curTask; i++)
+    {
+        if ((tasks[i].func) && (tasks[i].exec))
+        {
+            tasks[i].exec = 0;
+            curTask = i;
+            blockInterrupts = 0;
+            tasks[i].func();
+            blockInterrupts = 1;
+            curTask = prev_task;
+            /* Delete task if one-shot */
+            if (!tasks[i].period)
+                tasks[i].func = 0;
+        }
+    }
 }
 
 void timerHandler(int signum)
@@ -111,7 +163,8 @@ void timerHandler(int signum)
         return;
 
     blockInterrupts = 1;
-    // TODO port from arduino.ino
+    schedSchedule();
+    schedDispatch();
     blockInterrupts = 0;
 }
 
