@@ -9,8 +9,8 @@ class Alphabot:
         self.ena = ena # enable pin for motor A
         self.enb = enb # enable pin for motor B
 
-        self.drivingPower = drivingPower # duty cycle of the PWM signal of the motors
-        self.turningPower = turningPower # duty cycle of the PWM signal of the motors
+        self.drivingPower = drivingPower # duty cycle of the PWM signal of the motors (0-100 percentage)
+        self.turningPower = turningPower # duty cycle of the PWM signal of the motors  (0-100 percentage)
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
