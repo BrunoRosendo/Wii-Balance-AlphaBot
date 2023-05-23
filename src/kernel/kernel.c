@@ -55,6 +55,8 @@ int setup()
 
     schedInit();
     // TODO add tasks
+
+    return 0;
 }
 
 int schedAddTask(PyObject *func, int delay, int period)

@@ -42,7 +42,7 @@ void schedDispatch();
 /**
  * Sets up the kernel and auxiliary modules
  */
-void setup();
+int setup();
 
 /**
  * Timer interruption handler
