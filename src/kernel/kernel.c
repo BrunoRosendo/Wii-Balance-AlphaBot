@@ -40,8 +40,8 @@ void setup()
     PyObject* tasksModule = PyImport_Import(moduleString);
 
     PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, (char*) "init_camera");
-    //PyObject* args = PyTuple_Pack(1,PyFloat_FromDouble(2.0));
-    PyObject_CallObject(initCameraFunc);
+    PyObject* args = PyTuple_Pack(0);
+    PyObject_CallObject(initCameraFunc, args);
 
     schedInit();
     // TODO add tasks
