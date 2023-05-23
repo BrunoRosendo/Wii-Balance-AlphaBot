@@ -3,6 +3,8 @@
 #include <signal.h>
 #include <stdio.h>
 
+int c = 0;
+
 SchedTask Tasks[MAX_TASKS];
 int cur_task = MAX_TASKS;
 
@@ -56,7 +58,7 @@ void schedDispatch()
 
 void timer_handler(int signum)
 {
-    printf("Boas mano, olha o timer\n");
+    printf("Boas mano, olha o timer %d\n", c++);
     // TODO port from arduino.ino
     sleep(1); // test if it's still interrupting
 }
