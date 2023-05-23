@@ -64,8 +64,9 @@ void timerHandler(int signum)
 
     printf("Boas mano, olha o timer %d\n", c++);
     // TODO port from arduino.ino
-    if (c == 10) blockInterrupts = 1;
+    if (c >= 10) blockInterrupts = 1;
     sleep(1); // test if it's still interrupting
+    blockInterrupts = 0;
 }
 
 int main()
