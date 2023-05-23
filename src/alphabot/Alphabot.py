@@ -1,4 +1,25 @@
 import RPi.GPIO as GPIO
+from enum import Enum
+
+class MovDirection(Enum):
+    POSITIVE = 0
+    NEGATIVE = 1
+    IDLE = 2
+
+# Weights that define the motor velocity
+weightThreshold = {
+    "NONE": 10,
+    "LOW": 20,
+    "MEDIUM": 30,
+    "HIGH": 40
+}
+# Power that defines the motor velocity
+powerMap = {
+    "NONE": 0,
+    "LOW": 25,
+    "MEDIUM": 50,
+    "HIGH": 75
+}
 
 class Alphabot:
     def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, drivingPower=50, turningPower=30):
@@ -9,8 +30,13 @@ class Alphabot:
         self.ena = ena # enable pin for motor A
         self.enb = enb # enable pin for motor B
 
+        # Variables to control the speed of the motors
         self.drivingPower = drivingPower # duty cycle of the PWM signal of the motors (0-100 percentage)
         self.turningPower = turningPower # duty cycle of the PWM signal of the motors  (0-100 percentage)
+
+        # Variables to control the direction of the motors
+        self.vertDirection = MovDirection.IDLE # vertical velocity of the robot
+        self.horizDirection = MovDirection.IDLE # horizontal velocity of the robot
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
@@ -81,3 +107,65 @@ class Alphabot:
         GPIO.output(self.ain2, GPIO.LOW)
         GPIO.output(self.bin1, GPIO.LOW)
         GPIO.output(self.bin2, GPIO.LOW)
+
+    """
+    Convert the mass data from the WiiBoard to a velocity
+    Update the direction and power of the motors of the Alphabot accordingly
+    Parameters
+    ----------
+    mass: {'top_right': float, 'top_left': float, 'bottom_right': float, 'bottom_left': float}
+    """
+    def mass_to_velocity(self, mass):
+        up = (mass["top_right"] + mass["top_left"]) / 2
+        down = (mass["bottom_right"] + mass["bottom_left"]) / 2
+        left = (mass["top_left"] + mass["bottom_left"]) / 2
+        right = (mass["top_right"] + mass["bottom_right"]) / 2
+
+        # Calculate the difference between the masses and directions
+        vertDiff = abs(up - down)
+        vertDirection = MovDirection.POSITIVE if up >= down else MovDirection.NEGATIVE if down > up else MovDirection.IDLE
+        horizDiff = abs(left - right)
+        horizDirection = MovDirection.POSITIVE if left >= right else MovDirection.NEGATIVE if right > left else MovDirection.IDLE
+
+        # Set the direction and power of the motors
+        # Decide if movement is vertical or horizontal
+        if vertDiff >= horizDiff:
+            # Reset the horizontal movement
+            self.horizDirection = MovDirection.IDLE
+            self.turningPower = 0
+            # Decide the vertical movement
+            if vertDiff <= weightThreshold["NONE"]: # No movement
+                self.vertDirection = MovDirection.IDLE
+                self.drivingPower = 0
+            elif vertDiff <= weightThreshold["LOW"]: # Low movement
+                self.vertDirection = vertDirection
+                self.drivingPower = powerMap["LOW"]
+            elif vertDiff <= weightThreshold["MEDIUM"]: # Medium movement
+                self.vertDirection = vertDirection
+                self.drivingPower = powerMap["MEDIUM"]
+            elif vertDiff <= weightThreshold["HIGH"]: # High movement
+                self.vertDirection = vertDirection
+                self.drivingPower = powerMap["HIGH"]
+        else:
+            # Reset the vertical movement
+            self.vertDirection = MovDirection.IDLE
+            self.drivingPower = 0
+            # Decide the horizontal movement
+            if horizDiff <= weightThreshold["NONE"]:
+                self.horizDirection = MovDirection.IDLE
+                self.turningPower = 0
+            elif horizDiff <= weightThreshold["LOW"]:
+                self.horizDirection = horizDirection
+                self.turningPower = powerMap["LOW"]
+            elif horizDiff <= weightThreshold["MEDIUM"]:
+                self.horizDirection = horizDirection
+                self.turningPower = powerMap["MEDIUM"]
+            elif horizDiff <= weightThreshold["HIGH"]:
+                self.horizDirection = horizDirection
+                self.turningPower = powerMap["HIGH"]
+        
+
+        
+
+
+
