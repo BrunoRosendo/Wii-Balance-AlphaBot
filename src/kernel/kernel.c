@@ -36,7 +36,13 @@ void schedInit()
 
 void setup()
 {
-    // TODO setup raspberry pi modules
+    PyObject* moduleString = PyString_FromString((char*) "./alphabot/tasks.py");
+    PyObject* tasksModule = PyImport_Import(moduleString);
+
+    PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, (char*) "init_camera");
+    //PyObject* args = PyTuple_Pack(1,PyFloat_FromDouble(2.0));
+    PyObject_CallObject(initCameraFunc);
+
     schedInit();
     // TODO add tasks
 }
