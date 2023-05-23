@@ -4,9 +4,10 @@
 #include <stdio.h>
 
 int c = 0;
+int blockInterrupts = 0;
 
 SchedTask Tasks[MAX_TASKS];
-int cur_task = MAX_TASKS;
+int curTask = MAX_TASKS;
 
 void schedInit()
 {
@@ -17,7 +18,7 @@ void schedInit()
     struct itimerval timer;
 
     memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = &timer_handler;
+    sa.sa_handler = &timerHandler;
     sa.sa_flags = SA_NODEFER;
     sigaction(SIGALRM, &sa, NULL);
 
@@ -56,10 +57,14 @@ void schedDispatch()
     // TODO port from arduino.ino, call python functions
 }
 
-void timer_handler(int signum)
+void timerHandler(int signum)
 {
+    if (blockInterrupts)
+        return;
+
     printf("Boas mano, olha o timer %d\n", c++);
     // TODO port from arduino.ino
+    if (c == 10) blockInterrupts = 1;
     sleep(1); // test if it's still interrupting
 }
 

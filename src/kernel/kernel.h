@@ -47,6 +47,6 @@ void setup();
 /**
  * Timer interruption handler
  */
-void timer_handler(int signum);
+void timerHandler(int signum);
 
 #endif

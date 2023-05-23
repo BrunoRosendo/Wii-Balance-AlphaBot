@@ -50,7 +50,7 @@ typedef struct
 
 #define NT 20
 Sched_Task_t Tasks[NT];
-int cur_task = NT;
+int curTask = NT;
 
 int Sched_Init(void)
 {
@@ -107,17 +107,17 @@ void Sched_Schedule(void)
 
 void Sched_Dispatch(void)
 {
-    int prev_task = cur_task;
-    for (int x = 0; x < cur_task; x++)
+    int prev_task = curTask;
+    for (int x = 0; x < curTask; x++)
     {
         if ((Tasks[x].func) && (Tasks[x].exec))
         {
             Tasks[x].exec = 0;
-            cur_task = x;
+            curTask = x;
             interrupts();
             Tasks[x].func();
             noInterrupts();
-            cur_task = prev_task;
+            curTask = prev_task;
             /* Delete task if one-shot */
             if (!Tasks[x].period)
                 Tasks[x].func = 0;
