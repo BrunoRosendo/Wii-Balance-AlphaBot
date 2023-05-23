@@ -3,7 +3,7 @@
 #include <signal.h>
 #include <stdio.h>
 
-int c = 0;
+// variable used to ignore timer interruptions while scheduling tasks. It should be set to 0 before executing tasks
 int blockInterrupts = 0;
 
 SchedTask Tasks[MAX_TASKS];
@@ -54,7 +54,7 @@ void schedSchedule()
 
 void schedDispatch()
 {
-    // TODO port from arduino.ino, call python functions
+    // TODO port from arduino.ino, call python functions, set blockInterrupts to 0 while calling another function
 }
 
 void timerHandler(int signum)
@@ -62,10 +62,8 @@ void timerHandler(int signum)
     if (blockInterrupts)
         return;
 
-    printf("Boas mano, olha o timer %d\n", c++);
+    blockInterrupts = 1;
     // TODO port from arduino.ino
-    if (c >= 10) blockInterrupts = 1;
-    sleep(1); // test if it's still interrupting
     blockInterrupts = 0;
 }
 
