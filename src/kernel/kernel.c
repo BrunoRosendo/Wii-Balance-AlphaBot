@@ -16,6 +16,7 @@ void schedInit()
 
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = &timer_handler;
+    sa.sa_flags = SA_NODEFER;
     sigaction(SIGALRM, &sa, NULL);
 
     // configure timer to expire after 1 mS
@@ -57,6 +58,7 @@ void timer_handler(int signum)
 {
     printf("Boas mano, olha o timer\n");
     // TODO port from arduino.ino
+    sleep(1); // test if it's still interrupting
 }
 
 int main()
