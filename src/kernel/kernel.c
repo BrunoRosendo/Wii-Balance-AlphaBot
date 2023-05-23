@@ -38,11 +38,41 @@ int setup()
 {
     Py_Initialize();
 
-    PyObject* tasksModule = PyImport_ImportModule("./alphabot/tasks.py");
+    PyObject *pSysPath, *pModuleDir;
+
+    // Import the 'sys' module
+    PyObject *pSysModule = PyImport_ImportModule("sys");
+    if (pSysModule == NULL) {
+        PyErr_Print();
+        return 1;
+    }
+
+    // Get the 'sys.path' list
+    pSysPath = PyObject_GetAttrString(pSysModule, "path");
+    if (pSysPath == NULL || !PyList_Check(pSysPath)) {
+        PyErr_Print();
+        return 1;
+    }
+
+    // Append the directory containing the module to 'sys.path'
+    pModuleDir = PyUnicode_DecodeFSDefault("..");
+    if (pModuleDir == NULL) {
+        PyErr_Print();
+        return 1;
+    }
+    int result = PyList_Append(pSysPath, pModuleDir);
+    if (result == -1) {
+        PyErr_Print();
+        return 1;
+    }
+
+    // Import the module using its name
+    PyObject *tasksModule = PyImport_ImportModule("alphabot.tasks");
     if (tasksModule == NULL) {
         PyErr_Print();
         return 1;
     }
+
     PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, "init_camera");
     if (initCameraFunc == NULL || !PyCallable_Check(initCameraFunc)) {
         if (PyErr_Occurred())
