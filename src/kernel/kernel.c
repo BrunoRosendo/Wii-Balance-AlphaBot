@@ -36,11 +36,21 @@ void schedInit()
 
 void setup()
 {
-    PyObject* moduleString = PyString_FromString((char*) "./alphabot/tasks.py");
-    PyObject* tasksModule = PyImport_Import(moduleString);
+    Py_Initialize();
 
-    PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, (char*) "init_camera");
-    PyObject* args = PyTuple_Pack(0);
+    PyObject* tasksModule = PyImport_ImportModule("./alphabot/tasks.py");
+    if (tasksModule == NULL) {
+        PyErr_Print();
+        return 1;
+    }
+    PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, "init_camera");
+    if (pFunc == NULL || !PyCallable_Check(pFunc)) {
+        if (PyErr_Occurred())
+            PyErr_Print();
+        return 1;
+    }
+
+    PyObject* args = PyTuple_New(0);
     PyObject_CallObject(initCameraFunc, args);
 
     schedInit();
