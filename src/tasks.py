@@ -1,8 +1,11 @@
 from alphabot.Alphabot import Alphabot
 from alphabot.Camera import Camera
+from wii_balance.WiiBoard import ResponseType, WiiBoard 
 
 alphabot = Alphabot()
 cam = Camera()
+wiiBoard = WiiBoard()   # Initialize the board. TODO: Check if should be here
+
 forward = False
 
 def toggle_forward_backwards():
@@ -32,3 +35,21 @@ def all_actions():
 def init_camera():
     cam.reset()
     cam.preview()
+
+def read_wii_data():
+    # Read the balance board data
+    response = wiiBoard.read_data()
+    if (response != None):
+        respType = response["type"]
+        data = response["data"]
+        print("Response type:", respType)
+        if respType == ResponseType.STATUS:
+            print(f"{respType} - {data}")
+        elif respType == ResponseType.CALIBRATION:
+            print(f"{respType} - {data}")
+        elif respType == ResponseType.MASS:
+            print(f"{respType} - {data}")
+    else:
+        print("No Response")
+
+
