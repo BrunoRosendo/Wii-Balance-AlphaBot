@@ -60,7 +60,8 @@ class ResponseType(Enum):
 class WiiBoard():
     def __init__(self):
         self.connected = False
-        self.connectToBoard()
+        self.board_address = None
+        # self.connectToBoard()
 
     def discover(self, duration=6, prefix=BLUETOOTH_NAME):
         '''
@@ -79,6 +80,7 @@ class WiiBoard():
         found_boards = [address for address, name in devices if name.startswith(prefix)]
         if not found_boards or len(found_boards) == 0:
             logger.debug("[Discovery] No WiiBoard found")
+            return
         
         self.board_address = found_boards[0]
         logger.info("Found WiiBoard: %s" % self.board_address)
@@ -98,6 +100,7 @@ class WiiBoard():
         self.running = True
         if self.board_address is None:
             logger.debug("[Connect] No WiiBoard address found")
+            return
 
         logger.info("Connecting to %s", self.board_address)
         self.controlSocket.connect((self.board_address, SEND_SOCKET_PORT))
@@ -128,8 +131,10 @@ class WiiBoard():
         if not self.connected:
             self.discover()
             self.connect()
-            self.calibrate()
-            self.readCalibrationData()
+
+            if self.connected:
+                self.calibrate()
+                self.readCalibrationData()
 
     def readCalibrationData(self):
         '''
