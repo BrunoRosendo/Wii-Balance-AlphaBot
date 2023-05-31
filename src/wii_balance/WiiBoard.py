@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 handler = logging.StreamHandler() # or RotatingFileHandler
 handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
 logger.addHandler(handler)
-logger.setLevel(logging.DEBUG) # or DEBUG
+logger.setLevel(logging.INFO) # or DEBUG
 
 class ResponseType(Enum):
     STATUS = 0
