@@ -107,6 +107,9 @@ class WiiBoard():
         self.running = True
         if self.board_address is None:
             logger.debug("[Connect] No WiiBoard address found")
+            # Close the sockets to prevent errors
+            self.controlSocket.close()
+            self.receiveSocket.close()
             return
 
         logger.info("Connecting to %s", self.board_address)
@@ -150,6 +153,15 @@ class WiiBoard():
         logger.debug("Attempting to read calibration data...")
         while self.running and self.receiveSocket:
             data = self.receiveSocket.recv(25)
+
+            # Check if data is empty
+            if not data:
+                # No more data, close the socket
+                self.receiveSocket.close()
+                self.controlSocket.close()
+                self.connected = False
+                return
+
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:
                 continue
