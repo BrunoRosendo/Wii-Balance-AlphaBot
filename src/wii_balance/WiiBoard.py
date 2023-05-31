@@ -61,6 +61,9 @@ class WiiBoard():
     def __init__(self):
         self.connected = False
         self.board_address = None
+        self.running = False
+        self.receiveSocket = None
+        self.controlSocket = None
         # self.connectToBoard()
 
     def discover(self, duration=6, prefix=BLUETOOTH_NAME):
