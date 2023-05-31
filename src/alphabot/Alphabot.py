@@ -8,7 +8,7 @@ class MovDirection(Enum):
 
 # Weights that define the motor velocity
 weightThreshold = {
-    "NONE": 10,
+    "NONE": 5,
     "LOW": 20,
     "MEDIUM": 30,
     "HIGH": 40
@@ -22,7 +22,7 @@ powerMap = {
 }
 
 class Alphabot:
-    def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, drivingPower=50, turningPower=30):
+    def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, vertPower=50, horizPower=30):
         self.ain1 = ain1 # motor A right forwards
         self.ain2 = ain2 # motor A backwards
         self.bin1 = bin1 # motor B forwards
@@ -31,8 +31,8 @@ class Alphabot:
         self.enb = enb # enable pin for motor B
 
         # Variables to control the speed of the motors
-        self.drivingPower = drivingPower # duty cycle of the PWM signal of the motors (0-100 percentage)
-        self.turningPower = turningPower # duty cycle of the PWM signal of the motors  (0-100 percentage)
+        self.vertPower = vertPower # duty cycle of the PWM signal of the motors (0-100 percentage)
+        self.horizPower = horizPower # duty cycle of the PWM signal of the motors  (0-100 percentage)
 
         # Variables to control the direction of the motors
         self.vertDirection = MovDirection.IDLE # vertical velocity of the robot
@@ -48,8 +48,8 @@ class Alphabot:
         GPIO.setup(self.enb, GPIO.OUT)
         self.pwma = GPIO.PWM(self.ena, 500)
         self.pwmb = GPIO.PWM(self.enb, 500)
-        self.pwma.start(self.drivingPower)
-        self.pwmb.start(self.drivingPower)
+        self.pwma.start(self.vertPower)
+        self.pwmb.start(self.vertPower)
 
         self.stop()
 
@@ -57,8 +57,8 @@ class Alphabot:
     Drives forward, using both wheels
     """
     def drive_forward(self):
-        self.pwma.ChangeDutyCycle(self.drivingPower)
-        self.pwmb.ChangeDutyCycle(self.drivingPower)
+        self.pwma.ChangeDutyCycle(self.vertPower)
+        self.pwmb.ChangeDutyCycle(self.vertPower)
         GPIO.output(self.ain1, GPIO.LOW)
         GPIO.output(self.ain2, GPIO.HIGH)
         GPIO.output(self.bin1, GPIO.LOW)
@@ -68,8 +68,8 @@ class Alphabot:
     Drives backwards, using both wheels
     """
     def drive_backwards(self):
-        self.pwma.ChangeDutyCycle(self.drivingPower)
-        self.pwmb.ChangeDutyCycle(self.drivingPower)
+        self.pwma.ChangeDutyCycle(self.vertPower)
+        self.pwmb.ChangeDutyCycle(self.vertPower)
         GPIO.output(self.ain1, GPIO.HIGH)
         GPIO.output(self.ain2, GPIO.LOW)
         GPIO.output(self.bin1, GPIO.HIGH)
@@ -79,8 +79,8 @@ class Alphabot:
     Drives while turning to the left
     """
     def drive_left(self):
-        self.pwma.ChangeDutyCycle(self.turningPower)
-        self.pwmb.ChangeDutyCycle(self.turningPower)
+        self.pwma.ChangeDutyCycle(self.horizPower)
+        self.pwmb.ChangeDutyCycle(self.horizPower)
         GPIO.output(self.ain1, GPIO.HIGH)
         GPIO.output(self.ain2, GPIO.LOW)
         GPIO.output(self.bin1, GPIO.LOW)
@@ -90,8 +90,8 @@ class Alphabot:
     Drives while turning to the right
     """
     def drive_right(self):
-        self.pwma.ChangeDutyCycle(self.turningPower)
-        self.pwmb.ChangeDutyCycle(self.turningPower)
+        self.pwma.ChangeDutyCycle(self.horizPower)
+        self.pwmb.ChangeDutyCycle(self.horizPower)
         GPIO.output(self.ain1, GPIO.LOW)
         GPIO.output(self.ain2, GPIO.HIGH)
         GPIO.output(self.bin1, GPIO.HIGH)
@@ -125,66 +125,142 @@ class Alphabot:
         vertDiff = abs(up - down)
         vertDirection = MovDirection.POSITIVE if up >= down else MovDirection.NEGATIVE if down > up else MovDirection.IDLE
         horizDiff = abs(left - right)
-        horizDirection = MovDirection.POSITIVE if left >= right else MovDirection.NEGATIVE if right > left else MovDirection.IDLE
+        horizDirection = MovDirection.POSITIVE if right >= left else MovDirection.NEGATIVE if left > right else MovDirection.IDLE
 
+        # Decide the vertical movement
+        if vertDiff <= weightThreshold["NONE"]: # No movement
+            self.vertDirection = MovDirection.IDLE
+            self.vertPower = 0
+        elif vertDiff <= weightThreshold["LOW"]: # Low movement
+            self.vertDirection = vertDirection
+            self.vertPower = powerMap["LOW"]
+        elif vertDiff <= weightThreshold["MEDIUM"]: # Medium movement
+            self.vertDirection = vertDirection
+            self.vertPower = powerMap["MEDIUM"]
+        elif vertDiff <= weightThreshold["HIGH"]: # High movement
+            self.vertDirection = vertDirection
+            self.vertPower = powerMap["HIGH"]
+
+        # Decide the horizontal movement
+        if horizDiff <= weightThreshold["NONE"]: # No movement
+            self.horizDirection = MovDirection.IDLE
+            self.horizPower = 0
+        elif horizDiff <= weightThreshold["LOW"]: # Low movement
+            self.horizDirection = horizDirection
+            self.horizPower = powerMap["LOW"]
+        elif horizDiff <= weightThreshold["MEDIUM"]: # Medium movement
+            self.horizDirection = horizDirection
+            self.horizPower = powerMap["MEDIUM"]
+        elif horizDiff <= weightThreshold["HIGH"]: # High movement
+            self.horizDirection = horizDirection
+            self.horizPower = powerMap["HIGH"]
+
+
+        # ==================
         # Set the direction and power of the motors
         # Decide if movement is vertical or horizontal
         if vertDiff >= horizDiff:
             # Reset the horizontal movement
             self.horizDirection = MovDirection.IDLE
-            self.turningPower = 0
+            self.horizPower = 0
             # Decide the vertical movement
             if vertDiff <= weightThreshold["NONE"]: # No movement
                 self.vertDirection = MovDirection.IDLE
-                self.drivingPower = 0
+                self.vertPower = 0
             elif vertDiff <= weightThreshold["LOW"]: # Low movement
                 self.vertDirection = vertDirection
-                self.drivingPower = powerMap["LOW"]
+                self.vertPower = powerMap["LOW"]
             elif vertDiff <= weightThreshold["MEDIUM"]: # Medium movement
                 self.vertDirection = vertDirection
-                self.drivingPower = powerMap["MEDIUM"]
+                self.vertPower = powerMap["MEDIUM"]
             elif vertDiff <= weightThreshold["HIGH"]: # High movement
                 self.vertDirection = vertDirection
-                self.drivingPower = powerMap["HIGH"]
+                self.vertPower = powerMap["HIGH"]
         else:
             # Reset the vertical movement
             self.vertDirection = MovDirection.IDLE
-            self.drivingPower = 0
+            self.vertPower = 0
             # Decide the horizontal movement
             if horizDiff <= weightThreshold["NONE"]:
                 self.horizDirection = MovDirection.IDLE
-                self.turningPower = 0
+                self.horizPower = 0
             elif horizDiff <= weightThreshold["LOW"]:
                 self.horizDirection = horizDirection
-                self.turningPower = powerMap["LOW"]
+                self.horizPower = powerMap["LOW"]
             elif horizDiff <= weightThreshold["MEDIUM"]:
                 self.horizDirection = horizDirection
-                self.turningPower = powerMap["MEDIUM"]
+                self.horizPower = powerMap["MEDIUM"]
             elif horizDiff <= weightThreshold["HIGH"]:
                 self.horizDirection = horizDirection
-                self.turningPower = powerMap["HIGH"]
+                self.horizPower = powerMap["HIGH"]
 
     """
     Decides the direction of the robot and drives accordingly
     """
     def drive(self):
+        print("Entered drive...")
+        rightMotorPower = 0
+        leftMotorPower = 0
+
         if (self.vertDirection == MovDirection.IDLE and self.horizDirection == MovDirection.IDLE):
             # Stop
             self.stop()
-        elif (self.vertDirection == MovDirection.POSITIVE):
-            # Drive forward
-            self.drive_forward()
-        elif (self.vertDirection == MovDirection.NEGATIVE):
-            # Drive backwards
-            self.drive_backwards()
-        elif (self.horizDirection == MovDirection.POSITIVE):
-            # Drive right
-            self.drive_right()
-        elif (self.horizDirection == MovDirection.NEGATIVE):
-            # Drive left
-            self.drive_left()
+            return
+        elif (self.vertDirection != MovDirection.IDLE):
+            rightMotorPower = self.vertPower
+            leftMotorPower = self.vertPower
+            if (self.horizDirection == MovDirection.POSITIVE):
+                # Drive forward and right
+                # Change the power of the wheels to turn (leftPower > rightPower)
+                leftMotorPower = max(self.vertPower, self.horizPower)
+                rightMotorPower = min(self.vertPower, self.horizPower)
+            elif (self.horizDirection == MovDirection.NEGATIVE):
+                # Drive forward and left
+                # Change the power of the wheels to turn (rightPower > leftPower)
+                rightMotorPower = max(self.vertPower, self.horizPower)
+                leftMotorPower = min(self.vertPower, self.horizPower)
+            #else:
+                # Drive forward
+                # The motors power is already set
+        elif (self.horizDirection != MovDirection.IDLE):
+            rightMotorPower = self.horizPower
+            leftMotorPower = self.horizPower
+            # The other cases were already set
         else:
            print("Error: Unknown direction")
+           return
+        
+        # Set the power of the motors
+        self.pwma.ChangeDutyCycle(leftMotorPower)
+        self.pwmb.ChangeDutyCycle(rightMotorPower)
+
+        # Set the direction of the motors
+        # The vertical direction determines if we turn on the motor1 or motors2
+        if self.vertDirection == MovDirection.POSITIVE:
+            GPIO.output(self.ain1, GPIO.LOW)
+            GPIO.output(self.ain2, GPIO.HIGH)
+            GPIO.output(self.bin1, GPIO.LOW)
+            GPIO.output(self.bin2, GPIO.HIGH)
+        elif self.vertDirection == MovDirection.NEGATIVE:
+            GPIO.output(self.ain1, GPIO.HIGH)
+            GPIO.output(self.ain2, GPIO.LOW)
+            GPIO.output(self.bin1, GPIO.HIGH)
+            GPIO.output(self.bin2, GPIO.LOW)
+        else: # Horizontal Movement (special case)
+            if self.horizDirection == MovDirection.POSITIVE:
+                # Turn left
+                GPIO.output(self.ain1, GPIO.LOW)
+                GPIO.output(self.ain2, GPIO.HIGH)
+                GPIO.output(self.bin1, GPIO.HIGH)
+                GPIO.output(self.bin2, GPIO.LOW)
+            elif self.horizDirection == MovDirection.NEGATIVE:
+                # Turn right
+                GPIO.output(self.ain1, GPIO.HIGH)
+                GPIO.output(self.ain2, GPIO.LOW)
+                GPIO.output(self.bin1, GPIO.LOW)
+                GPIO.output(self.bin2, GPIO.HIGH)
+
+
         
 
         

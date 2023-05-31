@@ -52,7 +52,7 @@ def read_wii_data():
             print(f"{respType} - {data}")
             alphabot.mass_to_velocity(data)
             print(alphabot.vertDirection, alphabot.horizDirection, 
-                  alphabot.drivingPower, alphabot.turningPower)
+                  alphabot.vertPower, alphabot.horizPower)
         elif respType == ResponseType.BUTTON:
             print("ola button")
     else:
