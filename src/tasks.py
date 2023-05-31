@@ -63,7 +63,7 @@ def drive_alphabot():
     alphabot.drive()
 
 def connect_to_board():
-    print("Connecting to board...")
+    print("Connecting to board...\n\n")
     wiiBoard.connectToBoard()
 
 # TODO: Detect when the board is disconnected

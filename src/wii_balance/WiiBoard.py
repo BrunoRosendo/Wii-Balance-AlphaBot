@@ -110,6 +110,8 @@ class WiiBoard():
             # Close the sockets to prevent errors
             self.controlSocket.close()
             self.receiveSocket.close()
+            self.controlSocket = None
+            self.receiveSocket = None
             return
 
         logger.info("Connecting to %s", self.board_address)
@@ -151,14 +153,14 @@ class WiiBoard():
         Read calibration data from the WiiBoard (4)
         '''
         logger.debug("Attempting to read calibration data...")
-        while self.running and self.receiveSocket:
+        while self.running and self.receiveSocket and self.connected:
             data = self.receiveSocket.recv(25)
 
             # Check if data is empty
             if not data:
                 # No more data, close the socket
-                self.receiveSocket.close()
-                self.controlSocket.close()
+                self.receiveSocket = self.receiveSocket.close()
+                self.controlSocket = self.controlSocket.close()
                 self.connected = False
                 return
 
@@ -213,8 +215,17 @@ class WiiBoard():
         Read data from the WiiBoard (5)
         '''
         logger.debug("Attempting to read data...")
-        while self.running and self.receiveSocket:
+        while self.running and self.receiveSocket and self.connected:
             data = self.receiveSocket.recv(25)
+            
+            # Check if data is empty
+            if not data:
+                # No more data, close the socket
+                self.receiveSocket = self.receiveSocket.close()
+                self.controlSocket = self.controlSocket.close()
+                self.connected = False
+                return
+            
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:   # Skip empty data
                 continue
