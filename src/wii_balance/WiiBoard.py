@@ -83,15 +83,20 @@ class WiiBoard():
         found_boards = [address for address, name in devices if name.startswith(prefix)]
         if not found_boards or len(found_boards) == 0:
             logger.debug("[Discovery] No WiiBoard found")
-            return
+            return False
         
         self.board_address = found_boards[0]
         logger.info("Found WiiBoard: %s" % self.board_address)
+        return True
 
     def connect(self):
         '''
         Connect to the WiiBoard (2)
-        ''' 
+        '''
+        if self.board_address is None:
+            logger.debug("[Connect] No WiiBoard address found")
+            return
+
         self.controlSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
         self.receiveSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
         # Set sockets to non-blocking
@@ -139,8 +144,8 @@ class WiiBoard():
         Connect to the WiiBoard if not already connected
         '''
         if not self.connected:
-            self.discover()
-            self.connect()
+            if self.discover():
+                self.connect()
 
             if self.connected:
                 self.calibrate()
