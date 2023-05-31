@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 handler = logging.StreamHandler() # or RotatingFileHandler
 handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
 logger.addHandler(handler)
-logger.setLevel(logging.INFO) # or DEBUG
+logger.setLevel(logging.DEBUG) # or DEBUG
 
 class ResponseType(Enum):
     STATUS = 0
@@ -145,6 +145,9 @@ class WiiBoard():
             input_type = data[1] 
             logger.debug(f"input_type {input_type}")
             if input_type == INPUT_STATUS:
+                if len(data) < 8:
+                    return None
+                
                 # Handler for Status Messages
                 batteryLevel = data[7]  # Get byte 7 from the packet
                 logger.debug(f"[INPUT_TYPE] batteryLevel {batteryLevel}")
@@ -154,6 +157,9 @@ class WiiBoard():
                 self.light_state = data[4] & LED1_MASK == LED1_MASK
                 self.on_status()
             elif input_type == INPUT_READ_DATA:
+                if len(data) < 8:
+                    return None
+                
                 # Handler for calibration data
                 logger.debug("Got calibration data")
                 if self.calibration_requested:
@@ -190,8 +196,11 @@ class WiiBoard():
             # logger.debug(f"byteCodes {byteCodes} {len(data)}")
 
             input_type = data[1] 
-            logger.debug(f"input_type {str(input_type)}")
+            logger.debug(f"input_type | packet size {str(input_type)} | {len(data)}")
             if input_type == INPUT_STATUS:
+                if len(data) < 8:
+                    return None
+                    
                 # Handler for Status Messages
                 batteryLevel = data[7]  # Get byte 7 from the packet
                 logger.debug(f"[INPUT_TYPE] batteryLevel {batteryLevel}")
@@ -203,6 +212,9 @@ class WiiBoard():
             elif input_type == INPUT_READ_DATA:
                 # Handler for calibration data
                 logger.debug("Got calibration data")
+                if len(data) < 8:
+                    return None
+                
                 if self.calibration_requested:
                     # logger.debug(f"[INPUT_READ_DATA] data[4] {data[4]}")
                     length = int(data[4] / 16 + 1)
@@ -231,8 +243,11 @@ class WiiBoard():
                 return self.on_mass(massVal)
 
     def check_button(self, state):
+        if len(state) < 2:	# If the button data is empty, ignore it
+            return None
+            
         state_parsed = [state[i] for i in range(len(state))]
-        logger.debug(f"Button state parsed: {state_parsed}")
+        # logger.debug(f"Button state parsed: {state_parsed}")
         # Only the second byte of the state is the button state
         btn_state = state_parsed[1]
         if btn_state == BUTTON_DOWN_MASK:
@@ -246,9 +261,12 @@ class WiiBoard():
         
 
     def get_mass(self, data):
-        # logger.debug(f"[Get_Mass] data: {data}")
+        logger.debug(f"[Get_Mass] data: {data} {len(data)}")
         # mass_data = [data[i] for i in range(len(data))]
         # logger.debug(f"[Get_Mass] mass_data: {mass_data}")
+        if len(data) < 8:	# Data packet is not valid, so return empty packet
+            return None
+        
         return  {
             'top_right':    self.calc_mass(data[0:2], TOP_RIGHT),
             'bottom_right': self.calc_mass(data[2:4], BOTTOM_RIGHT),
@@ -320,6 +338,9 @@ class WiiBoard():
         self.calibrated = True
         return self.build_response(ResponseType.CALIBRATION, self.calibration)
     def on_mass(self, mass):
+        if mass is None:
+            return None
+        
         logger.debug("New mass data: %s", str(mass))
         return self.build_response(ResponseType.MASS, mass)
     def on_pressed(self):

@@ -23,7 +23,7 @@ powerMap = {
 
 class Alphabot:
     def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, drivingPower=50, turningPower=30):
-        self.ain1 = ain1 # motor A forwards
+        self.ain1 = ain1 # motor A right forwards
         self.ain2 = ain2 # motor A backwards
         self.bin1 = bin1 # motor B forwards
         self.bin2 = bin2 # motor B backwards

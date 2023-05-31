@@ -69,7 +69,7 @@ int pythonInit()
     }
 
     // Import the tasks module and init functions
-    tasksModule = PyImport_ImportModule("alphabot.tasks");
+    tasksModule = PyImport_ImportModule("tasks");
     if (tasksModule == NULL) {
         PyErr_Print();
         return 1;
@@ -82,7 +82,8 @@ int pythonInit()
         return 1;
     }
     PyObject* args = PyTuple_New(0);
-    PyObject_CallObject(initCameraFunc, args);
+    // TODO: uncomment this
+    //PyObject_CallObject(initCameraFunc, args);
 
     return 0;
 }
@@ -93,14 +94,14 @@ int setup()
     if (schedInit() != 0) return 1;
     // TODO add tasks
 
-    createPythonTask("read_wii_data", 0, 100)
-    createPythonTask("drive_alphabot", 0, 100)
+    createPythonTask("read_wii_data", 0, 100);
+    createPythonTask("drive_alphabot", 0, 100);
 
     return 0;
 }
 
 
-void createPythonTask(char* name, int delay, int period)
+int createPythonTask(char* name, int delay, int period)
 {
     PyObject* pyFuncObj = PyObject_GetAttrString(tasksModule, name);
     if (pyFuncObj == NULL || !PyCallable_Check(pyFuncObj)) {

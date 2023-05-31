@@ -62,6 +62,6 @@ void timerHandler(int signum);
  * @param delay the delay in ticks
  * @param period the period in ticks
 */
-void createPythonTask(char* name, int delay, int period)
+int createPythonTask(char* name, int delay, int period);
 
 #endif

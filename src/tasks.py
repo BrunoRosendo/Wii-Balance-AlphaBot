@@ -37,6 +37,7 @@ def init_camera():
     cam.preview()
 
 def read_wii_data():
+    print("Reading wii data......")
     # Read the balance board data
     response = wiiBoard.read_data()
     if (response != None):
@@ -58,5 +59,6 @@ def read_wii_data():
         print("No Response")
 
 def drive_alphabot():
+    print("Driving alpha bot.....")
     alphabot.drive()
 
