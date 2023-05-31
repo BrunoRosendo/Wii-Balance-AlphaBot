@@ -59,6 +59,7 @@ class ResponseType(Enum):
 
 class WiiBoard():
     def __init__(self):
+        # TODO: Reconnect on button clicked or each 10 seconds. 
         self.discover()
         self.connect()
         self.calibrate()
