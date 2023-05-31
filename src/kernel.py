@@ -61,14 +61,14 @@ def Sched_Dispatch():
 def setup():
     print("setting up")
     # TODO initialize pins and bot
-    init_camera()
+    #init_camera()
 
     Sched_Init()
 
     # TODO this is using deciseconds but needs to use ms later
-    Sched_AddTask(all_actions, 0, 50)
-    Sched_AddTask(read_wii_data, 0, 100)
-    Sched_AddTask(drive_alphabot, 0, 100)
+    # Sched_AddTask(all_actions, 0, 50)
+    Sched_AddTask(read_wii_data, 0, 1)
+    Sched_AddTask(drive_alphabot, 0, 1)
 
 def Sched_Interrupt():
     stop_interrupts()

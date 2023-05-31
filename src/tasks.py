@@ -37,6 +37,7 @@ def init_camera():
     cam.preview()
 
 def read_wii_data():
+    print("Reading wii data......")
     # Read the balance board data
     response = wiiBoard.read_data()
     if (response != None):
@@ -51,13 +52,13 @@ def read_wii_data():
             print(f"{respType} - {data}")
             alphabot.mass_to_velocity(data)
             print(alphabot.vertDirection, alphabot.horizDirection, 
-                  alphabot.drivingPower, alphabot.turningPower)
+                  alphabot.vertPower, alphabot.horizPower)
         elif respType == ResponseType.BUTTON:
             print("ola button")
     else:
         print("No Response")
 
 def drive_alphabot():
+    print("Driving alpha bot.....")
     alphabot.drive()
-
 

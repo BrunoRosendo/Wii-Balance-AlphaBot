@@ -54,4 +54,14 @@ int setup();
  */
 void timerHandler(int signum);
 
+
+/**
+ * Creates a python task and adds it to the scheduler
+ * 
+ * @param name the name of the task
+ * @param delay the delay in ticks
+ * @param period the period in ticks
+*/
+int createPythonTask(char* name, int delay, int period);
+
 #endif
