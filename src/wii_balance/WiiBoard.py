@@ -108,10 +108,8 @@ class WiiBoard():
         if self.board_address is None:
             logger.debug("[Connect] No WiiBoard address found")
             # Close the sockets to prevent errors
-            self.controlSocket.close()
-            self.receiveSocket.close()
-            self.controlSocket = None
-            self.receiveSocket = None
+            self.controlSocket = self.controlSocket.close()
+            self.receiveSocket = self.receiveSocket.close()
             return
 
         logger.info("Connecting to %s", self.board_address)
@@ -153,16 +151,29 @@ class WiiBoard():
         Read calibration data from the WiiBoard (4)
         '''
         logger.debug("Attempting to read calibration data...")
-        while self.running and self.receiveSocket and self.connected:
-            data = self.receiveSocket.recv(25)
+        while self.running and self.receiveSocket and self.connected: 
+            try:
+                data = self.receiveSocket.recv(25)
 
-            # Check if data is empty
-            if not data:
-                # No more data, close the socket
-                self.receiveSocket = self.receiveSocket.close()
-                self.controlSocket = self.controlSocket.close()
-                self.connected = False
-                return
+                # Check if data is empty
+                if not data:
+                    # No more data, close the socket
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                    return
+            except socket.error as e:
+                # Handle socket errors (non-blocking call would raise an exception)
+                if e.errno == socket.errno.EWOULDBLOCK:
+                    print("Socket error EWOULDBLOCK: %s" % e)
+                    # No data available, wait a bit
+                    # Or close the socket assuming its disconnected
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                else:
+                    # Some other error
+                    print("Socket error: %s" % e)
 
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:
@@ -216,15 +227,28 @@ class WiiBoard():
         '''
         logger.debug("Attempting to read data...")
         while self.running and self.receiveSocket and self.connected:
-            data = self.receiveSocket.recv(25)
-            
-            # Check if data is empty
-            if not data:
-                # No more data, close the socket
-                self.receiveSocket = self.receiveSocket.close()
-                self.controlSocket = self.controlSocket.close()
-                self.connected = False
-                return
+            try:
+                data = self.receiveSocket.recv(25)
+                
+                # Check if data is empty
+                if not data:
+                    # No more data, close the socket
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                    return
+            except socket.error as e:
+                # Handle socket errors (non-blocking call would raise an exception)
+                if e.errno == socket.errno.EWOULDBLOCK:
+                    print("Socket error EWOULDBLOCK: %s" % e)
+                    # No data available, wait a bit
+                    # Or close the socket assuming its disconnected
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                else:
+                    # Some other error
+                    print("Socket error: %s" % e)
             
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:   # Skip empty data
