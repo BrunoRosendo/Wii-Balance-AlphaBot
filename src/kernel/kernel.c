@@ -96,6 +96,7 @@ int setup()
 
     createPythonTask("read_wii_data", 0, 100);
     createPythonTask("drive_alphabot", 0, 100);
+    createPythonTask("connect_to_board", 0, 10000);
 
     return 0;
 }

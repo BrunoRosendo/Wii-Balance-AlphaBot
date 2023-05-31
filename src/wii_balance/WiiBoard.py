@@ -59,11 +59,8 @@ class ResponseType(Enum):
 
 class WiiBoard():
     def __init__(self):
-        # TODO: Reconnect on button clicked or each 10 seconds. 
-        self.discover()
-        self.connect()
-        self.calibrate()
-        self.readCalibrationData()
+        self.connected = False
+        self.connectToBoard()
 
     def discover(self, duration=6, prefix=BLUETOOTH_NAME):
         '''
@@ -81,7 +78,7 @@ class WiiBoard():
         logger.debug("Found devices: %s", str(devices))
         found_boards = [address for address, name in devices if name.startswith(prefix)]
         if not found_boards or len(found_boards) == 0:
-            raise Exception("[Discovery] No WiiBoard found")
+            logger.debug("[Discovery] No WiiBoard found")
         
         self.board_address = found_boards[0]
         logger.info("Found WiiBoard: %s" % self.board_address)
@@ -100,12 +97,13 @@ class WiiBoard():
         self.battery = 0.0
         self.running = True
         if self.board_address is None:
-            raise Exception("[Connect] No WiiBoard address found")
+            logger.debug("[Connect] No WiiBoard address found")
 
         logger.info("Connecting to %s", self.board_address)
         self.controlSocket.connect((self.board_address, SEND_SOCKET_PORT))
         self.receiveSocket.connect((self.board_address, RECV_SOCKET_PORT))
         logger.info("Connected sockets")
+        self.connected = True
 
     def calibrate(self):
         '''
@@ -122,6 +120,16 @@ class WiiBoard():
 
         self.status()
         self.light(False)
+
+    def connectToBoard(self):
+        '''
+        Connect to the WiiBoard if not already connected
+        '''
+        if not self.connected:
+            self.discover()
+            self.connect()
+            self.calibrate()
+            self.readCalibrationData()
 
     def readCalibrationData(self):
         '''
