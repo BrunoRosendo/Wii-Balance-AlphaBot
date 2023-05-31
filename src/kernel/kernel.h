@@ -22,7 +22,12 @@ typedef struct
 /**
  * Initializes the scheduler
  */
-void schedInit();
+int schedInit();
+
+/**
+ * Initializes the python interpreter and modules
+ */
+int pythonInit();
 
 /**
  * Adds a task to the scheduler
@@ -42,11 +47,11 @@ void schedDispatch();
 /**
  * Sets up the kernel and auxiliary modules
  */
-void setup();
+int setup();
 
 /**
  * Timer interruption handler
  */
-void timer_handler(int signum);
+void timerHandler(int signum);
 
 #endif

@@ -3,19 +3,25 @@
 #include <signal.h>
 #include <stdio.h>
 
-SchedTask Tasks[MAX_TASKS];
-int cur_task = MAX_TASKS;
+// variable used to ignore timer interruptions while scheduling tasks. It should be set to 0 before executing tasks
+int blockInterrupts = 0;
 
-void schedInit()
+SchedTask tasks[MAX_TASKS];
+int curTask = MAX_TASKS;
+
+PyObject *tasksModule = NULL;
+
+int schedInit()
 {
     for (int i = 0; i < MAX_TASKS; i++)
-        Tasks[i].func = NULL;
+        tasks[i].func = NULL;
 
     struct sigaction sa;
     struct itimerval timer;
 
     memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = &timer_handler;
+    sa.sa_handler = &timerHandler;
+    sa.sa_flags = SA_NODEFER;
     sigaction(SIGALRM, &sa, NULL);
 
     // configure timer to expire after 1 mS
@@ -28,40 +34,146 @@ void schedInit()
     timer.it_interval.tv_usec = TICK_RATE;
 
     setitimer(ITIMER_REAL, &timer, NULL);
+
+    return 0;
 }
 
-void setup()
+int pythonInit()
 {
-    // TODO setup raspberry pi modules
-    schedInit();
+    Py_Initialize();
+
+    // Import the 'sys' module
+    PyObject *sysModule = PyImport_ImportModule("sys");
+    if (sysModule == NULL) {
+        PyErr_Print();
+        return 1;
+    }
+
+    // Get the 'sys.path' list
+    PyObject *pSysPath = PyObject_GetAttrString(sysModule, "path");
+    if (pSysPath == NULL || !PyList_Check(pSysPath)) {
+        PyErr_Print();
+        return 1;
+    }
+
+    // Append the directory containing the module to 'sys.path'
+   PyObject * pModuleDir = PyUnicode_DecodeFSDefault("..");
+    if (pModuleDir == NULL) {
+        PyErr_Print();
+        return 1;
+    }
+    int result = PyList_Append(pSysPath, pModuleDir);
+    if (result == -1) {
+        PyErr_Print();
+        return 1;
+    }
+
+    // Import the tasks module and init functions
+    tasksModule = PyImport_ImportModule("alphabot.tasks");
+    if (tasksModule == NULL) {
+        PyErr_Print();
+        return 1;
+    }
+
+    PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, "init_camera");
+    if (initCameraFunc == NULL || !PyCallable_Check(initCameraFunc)) {
+        if (PyErr_Occurred())
+            PyErr_Print();
+        return 1;
+    }
+    PyObject* args = PyTuple_New(0);
+    PyObject_CallObject(initCameraFunc, args);
+
+    return 0;
+}
+
+int setup()
+{
+    if (pythonInit() != 0) return 1;
+    if (schedInit() != 0) return 1;
     // TODO add tasks
+
+    PyObject* initCameraFunc = PyObject_GetAttrString(tasksModule, "all_actions");
+    if (initCameraFunc == NULL || !PyCallable_Check(initCameraFunc)) {
+        if (PyErr_Occurred())
+            PyErr_Print();
+        return 1;
+    }
+    if (schedAddTask(initCameraFunc, 0, 500) != 0) return 1;
+    return 0;
 }
 
 int schedAddTask(PyObject *func, int delay, int period)
 {
-    // TODO port from arduino.ino
+    for (int i = 0; i < MAX_TASKS; i++)
+        if (!tasks[i].func)
+        {
+            tasks[i].period = period;
+            tasks[i].delay = delay;
+            tasks[i].exec = 0;
+            tasks[i].func = func;
+            return i;
+        }
     return -1;
 }
 
 void schedSchedule()
 {
-    // TODO port from arduino.ino
+    for (int i = 0; i < MAX_TASKS; i++)
+    {
+        if (tasks[i].func)
+        {
+            if (tasks[i].delay)
+            {
+                tasks[i].delay--;
+            }
+            else
+            {
+                /* Schedule Task */
+                tasks[i].exec++;
+                tasks[i].delay = tasks[i].period - 1;
+            }
+        }
+    }
 }
 
 void schedDispatch()
 {
-    // TODO port from arduino.ino, call python functions
+    int prev_task = curTask;
+    for (int i = 0; i < curTask; i++)
+    {
+        if ((tasks[i].func) && (tasks[i].exec))
+        {
+            tasks[i].exec = 0;
+            curTask = i;
+            blockInterrupts = 0;
+
+            PyObject* args = PyTuple_New(0);
+            PyObject_CallObject(tasks[i].func, args);
+
+            blockInterrupts = 1;
+            curTask = prev_task;
+            /* Delete task if one-shot */
+            if (!tasks[i].period)
+                tasks[i].func = 0;
+        }
+    }
 }
 
-void timer_handler(int signum)
+void timerHandler(int signum)
 {
-    printf("Boas mano, olha o timer\n");
-    // TODO port from arduino.ino
+    if (blockInterrupts)
+        return;
+
+    blockInterrupts = 1;
+    schedSchedule();
+    schedDispatch();
+    blockInterrupts = 0;
 }
 
 int main()
 {
-    setup();
+    if (setup() != 0) return 1;
     while (1)
     {
         sleep(1);
