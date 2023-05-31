@@ -99,9 +99,6 @@ class WiiBoard():
 
         self.controlSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
         self.receiveSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
-        # Set sockets to non-blocking
-        self.controlSocket.setblocking(False)
-        self.receiveSocket.setblocking(False)
         
         self.calibration = [[1e4]*4]*3
         self.calibration_requested = False
@@ -121,6 +118,11 @@ class WiiBoard():
         self.controlSocket.connect((self.board_address, SEND_SOCKET_PORT))
         self.receiveSocket.connect((self.board_address, RECV_SOCKET_PORT))
         logger.info("Connected sockets")
+
+        # Set sockets to non-blocking
+        self.controlSocket.setblocking(False)
+        self.receiveSocket.setblocking(False)
+        
         self.connected = True
 
     def calibrate(self):
