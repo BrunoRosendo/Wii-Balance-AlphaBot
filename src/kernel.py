@@ -1,6 +1,6 @@
 from Task import Task
 import threading
-from alphabot.tasks import all_actions, init_camera
+from tasks import all_actions, init_camera, read_wii_data, drive_alphabot
 import time
 
 timer = None
@@ -67,6 +67,8 @@ def setup():
 
     # TODO this is using deciseconds but needs to use ms later
     Sched_AddTask(all_actions, 0, 50)
+    Sched_AddTask(read_wii_data, 0, 100)
+    Sched_AddTask(drive_alphabot, 0, 100)
 
 def Sched_Interrupt():
     stop_interrupts()

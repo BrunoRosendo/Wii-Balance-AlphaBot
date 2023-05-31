@@ -9,9 +9,7 @@ You only need to install `python-bluez` or `python-bluetooth` package.
 LICENSE LGPL <http://www.gnu.org/licenses/lgpl.html>
         (c) Nedim Jackman 2008 (c) Pierrick Koch 2016
 """
-import time
 import logging
-import collections
 import bluetooth
 import socket
 import struct
@@ -359,30 +357,6 @@ class WiiBoard():
             'type': type,
             'data': data
         }
-
-
-# Initialize the board
-wiiBoard = WiiBoard()
-while 1:
-    newImp = input("Trigger a board read\n")
-
-    # Read the board
-    response = wiiBoard.read_data()
-    if (response != None):
-        print("here")
-        respType = response["type"]
-        data = response["data"]
-        print("Response type:", respType)
-        if respType == ResponseType.STATUS:
-            logger.info(f"{respType} - {data}")
-        elif respType == ResponseType.CALIBRATION:
-            logger.info(f"{respType} - {data}")
-        elif respType == ResponseType.MASS:
-            logger.info(f"{respType} - {data}")
-    else:
-        logger.info("No Response")
-
-# Possible TODO: Check if we can change the frequency that the mass data is sent
-
+    
 
 # Wii Balance Board Docs -> https://wiibrew.org/wiki/Wii_Balance_Board
