@@ -118,12 +118,14 @@ class WiiBoard():
         self.controlSocket.connect((self.board_address, SEND_SOCKET_PORT))
         self.receiveSocket.connect((self.board_address, RECV_SOCKET_PORT))
         logger.info("Connected sockets")
-
-        # Set sockets to non-blocking
-        self.controlSocket.setblocking(False)
-        self.receiveSocket.setblocking(False)
         
         self.connected = True
+        
+        # Set sockets to non-blocking
+        #self.controlSocket.setblocking(False)
+        #self.receiveSocket.setblocking(False)
+        self.receiveSocket.settimeout(0.1)
+        self.controlSocket.settimeout(0.1)
 
     def calibrate(self):
         '''
@@ -181,6 +183,7 @@ class WiiBoard():
                 else:
                     # Some other error
                     print("Socket error: %s" % e)
+                return None
 
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:
@@ -256,6 +259,7 @@ class WiiBoard():
                 else:
                     # Some other error
                     print("Socket error: %s" % e)
+                return None
             
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:   # Skip empty data

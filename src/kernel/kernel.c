@@ -90,6 +90,8 @@ int pythonInit()
 
 int setup()
 {
+    signal(SIGINT, intHandler);
+
     if (pythonInit() != 0) return 1;
     if (schedInit() != 0) return 1;
     // TODO add tasks
@@ -182,6 +184,11 @@ void timerHandler(int signum)
     schedSchedule();
     schedDispatch();
     blockInterrupts = 0;
+}
+
+void intHandler(int signum)
+{
+    exit(1);
 }
 
 int main()
