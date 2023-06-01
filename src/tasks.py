@@ -61,8 +61,8 @@ def read_wii_data():
 
 def drive_alphabot():
     print("Driving alpha bot.....")
-    time.sleep(1)
-    print("Out of sleep")
+    # time.sleep(1)
+    # print("Out of sleep")
     alphabot.drive()
 
 def connect_to_board():

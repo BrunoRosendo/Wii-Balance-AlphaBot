@@ -158,31 +158,32 @@ void schedSchedule()
 void schedDispatch()
 {
     int prev_task = curTask;
-    if (prev_task == MAX_TASKS) {	// No task is running
-        for (int i = 0; i < MAX_TASKS; i++)
+    
+    for (int i = 0; i < curTask; i++)
+    {
+        if ((tasks[i].func) && (tasks[i].exec))
         {
-            if ((tasks[i].func) && (tasks[i].exec))
-            {
 
-                tasks[i].exec = 0;
-                curTask = i;
+            tasks[i].exec = 0;
+            curTask = i;
+            blockInterrupts = 0;
 
-                PyObject* args = PyTuple_New(0);
-                PyObject_CallObject(tasks[i].func, args);
+            PyObject* args = PyTuple_New(0);
+            PyObject_CallObject(tasks[i].func, args);
 
-                curTask = prev_task;
-                /* Delete task if one-shot */
-                if (!tasks[i].period)
-                    tasks[i].func = 0;
-            }
+            blockInterrupts = 1;
+            curTask = prev_task;
+            /* Delete task if one-shot */
+            if (!tasks[i].period)
+                tasks[i].func = 0;
         }
     }
 }
 
 void timerHandler(int signum)
 {
-    fflush(stdout); // Send any buffered data to the stdout
-    
+    printf(". ");
+    fflush(stdout);
     if (blockInterrupts)
         return;
 
