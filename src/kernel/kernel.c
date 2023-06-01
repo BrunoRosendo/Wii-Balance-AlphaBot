@@ -158,10 +158,12 @@ void schedSchedule()
 void schedDispatch()
 {
     int prev_task = curTask;
+    
     for (int i = 0; i < curTask; i++)
     {
         if ((tasks[i].func) && (tasks[i].exec))
         {
+
             tasks[i].exec = 0;
             curTask = i;
             blockInterrupts = 0;
