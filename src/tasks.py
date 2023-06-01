@@ -1,6 +1,7 @@
 from alphabot.Alphabot import Alphabot
 from alphabot.Camera import Camera
-from wii_balance.WiiBoard import ResponseType, WiiBoard 
+from wii_balance.WiiBoard import ResponseType, WiiBoard
+import time
 
 alphabot = Alphabot()
 cam = Camera()
@@ -60,5 +61,12 @@ def read_wii_data():
 
 def drive_alphabot():
     print("Driving alpha bot.....")
+    # time.sleep(1)
+    # print("Out of sleep")
     alphabot.drive()
 
+def connect_to_board():
+    print("Connecting to board...\n\n")
+    wiiBoard.connectToBoard()
+
+# TODO: Detect when the board is disconnected

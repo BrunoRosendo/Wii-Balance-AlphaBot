@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 handler = logging.StreamHandler() # or RotatingFileHandler
 handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
 logger.addHandler(handler)
-logger.setLevel(logging.INFO) # or DEBUG
+logger.setLevel(logging.DEBUG) # or DEBUG
 
 class ResponseType(Enum):
     STATUS = 0
@@ -59,13 +59,14 @@ class ResponseType(Enum):
 
 class WiiBoard():
     def __init__(self):
-        # TODO: Reconnect on button clicked or each 10 seconds. 
-        self.discover()
-        self.connect()
-        self.calibrate()
-        self.readCalibrationData()
+        self.connected = False
+        self.board_address = None
+        self.running = False
+        self.receiveSocket = None
+        self.controlSocket = None
+        # self.connectToBoard()
 
-    def discover(self, duration=6, prefix=BLUETOOTH_NAME):
+    def discover(self, duration=3, prefix=BLUETOOTH_NAME):
         '''
         Discover the WiiBoard (1)
 
@@ -77,21 +78,29 @@ class WiiBoard():
             The prefix of the WiiBoard name
         '''
         logger.info("Scan Bluetooth devices for %i seconds...", duration)
-        devices = bluetooth.discover_devices(duration=duration, lookup_names=True)
+        devices = bluetooth.discover_devices(duration=duration, lookup_names=True)	# Returns [] if it doesn't find any
+        logger.debug("Discover devices finished.")
         logger.debug("Found devices: %s", str(devices))
         found_boards = [address for address, name in devices if name.startswith(prefix)]
         if not found_boards or len(found_boards) == 0:
-            raise Exception("[Discovery] No WiiBoard found")
+            logger.debug("[Discovery] No WiiBoard found")
+            return False
         
         self.board_address = found_boards[0]
         logger.info("Found WiiBoard: %s" % self.board_address)
+        return True
 
     def connect(self):
         '''
         Connect to the WiiBoard (2)
-        ''' 
+        '''
+        if self.board_address is None:
+            logger.debug("[Connect] No WiiBoard address found")
+            return
+
         self.controlSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
         self.receiveSocket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_L2CAP)
+        
         self.calibration = [[1e4]*4]*3
         self.calibration_requested = False
         self.calibrated = False
@@ -100,12 +109,24 @@ class WiiBoard():
         self.battery = 0.0
         self.running = True
         if self.board_address is None:
-            raise Exception("[Connect] No WiiBoard address found")
+            logger.debug("[Connect] No WiiBoard address found")
+            # Close the sockets to prevent errors
+            self.controlSocket = self.controlSocket.close()
+            self.receiveSocket = self.receiveSocket.close()
+            return
 
         logger.info("Connecting to %s", self.board_address)
         self.controlSocket.connect((self.board_address, SEND_SOCKET_PORT))
         self.receiveSocket.connect((self.board_address, RECV_SOCKET_PORT))
         logger.info("Connected sockets")
+        
+        self.connected = True
+        
+        # Set sockets to non-blocking
+        #self.controlSocket.setblocking(False)
+        #self.receiveSocket.setblocking(False)
+        self.receiveSocket.settimeout(0.1)
+        self.controlSocket.settimeout(0.1)
 
     def calibrate(self):
         '''
@@ -123,13 +144,48 @@ class WiiBoard():
         self.status()
         self.light(False)
 
+    def connectToBoard(self):
+        '''
+        Connect to the WiiBoard if not already connected
+        '''
+        if not self.connected:
+            if self.discover():
+                self.connect()
+
+            if self.connected:
+                self.calibrate()
+                self.readCalibrationData()
+
     def readCalibrationData(self):
         '''
         Read calibration data from the WiiBoard (4)
         '''
         logger.debug("Attempting to read calibration data...")
-        while self.running and self.receiveSocket:
-            data = self.receiveSocket.recv(25)
+        while self.running and self.receiveSocket and self.connected: 
+            try:
+                data = self.receiveSocket.recv(25)
+
+                # Check if data is empty
+                if not data:
+                    # No more data, close the socket
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                    return
+            except socket.error as e:
+                # Handle socket errors (non-blocking call would raise an exception)
+                if e.errno == socket.errno.EWOULDBLOCK:
+                    print("Socket error EWOULDBLOCK: %s" % e)
+                    # No data available, wait a bit
+                    # Or close the socket assuming its disconnected
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                else:
+                    # Some other error
+                    print("Socket error: %s" % e)
+                return None
+
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:
                 continue
@@ -181,8 +237,31 @@ class WiiBoard():
         Read data from the WiiBoard (5)
         '''
         logger.debug("Attempting to read data...")
-        while self.running and self.receiveSocket:
-            data = self.receiveSocket.recv(25)
+        while self.running and self.receiveSocket and self.connected:
+            try:
+                data = self.receiveSocket.recv(25)
+                
+                # Check if data is empty
+                if not data:
+                    # No more data, close the socket
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                    return
+            except socket.error as e:
+                # Handle socket errors (non-blocking call would raise an exception)
+                if e.errno == socket.errno.EWOULDBLOCK:
+                    print("Socket error EWOULDBLOCK: %s" % e)
+                    # No data available, wait a bit
+                    # Or close the socket assuming its disconnected
+                    self.receiveSocket = self.receiveSocket.close()
+                    self.controlSocket = self.controlSocket.close()
+                    self.connected = False
+                else:
+                    # Some other error
+                    print("Socket error: %s" % e)
+                return None
+            
             # logger.debug("socket.recv(25): %r", data)
             if len(data) < 2:   # Skip empty data
                 continue

@@ -54,6 +54,11 @@ int setup();
  */
 void timerHandler(int signum);
 
+/**
+ * Sigint interruption handler
+ */
+void intHandler(int signum);
+
 
 /**
  * Creates a python task and adds it to the scheduler
