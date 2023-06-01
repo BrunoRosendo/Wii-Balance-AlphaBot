@@ -21,7 +21,9 @@ int schedInit()
 
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = &timerHandler;
-    sa.sa_flags = SA_NODEFER;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;	// This ensures that certain system calls interrupted by the sighandler will be automatically restarted rather than returning an error
+    // This is necessary since the bluetooth discover service takes some time and will be interrupted.
     sigaction(SIGALRM, &sa, NULL);
 
     // configure timer to expire after 1 mS
@@ -96,10 +98,11 @@ int setup()
     if (schedInit() != 0) return 1;
     // TODO add tasks
 
+    createPythonTask("connect_to_board", 0, 5000);	// This task should have the higher priority. Since without the connection, the other tasks are useless
     createPythonTask("read_wii_data", 0, 100);
     createPythonTask("drive_alphabot", 0, 100);
-    createPythonTask("connect_to_board", 0, 10000);
-
+    
+    
     return 0;
 }
 
@@ -177,6 +180,8 @@ void schedDispatch()
 
 void timerHandler(int signum)
 {
+    printf(". ");
+    fflush(stdout);
     if (blockInterrupts)
         return;
 

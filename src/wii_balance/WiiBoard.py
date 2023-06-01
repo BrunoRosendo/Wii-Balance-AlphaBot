@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 handler = logging.StreamHandler() # or RotatingFileHandler
 handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
 logger.addHandler(handler)
-logger.setLevel(logging.INFO) # or DEBUG
+logger.setLevel(logging.DEBUG) # or DEBUG
 
 class ResponseType(Enum):
     STATUS = 0
@@ -66,7 +66,7 @@ class WiiBoard():
         self.controlSocket = None
         # self.connectToBoard()
 
-    def discover(self, duration=6, prefix=BLUETOOTH_NAME):
+    def discover(self, duration=3, prefix=BLUETOOTH_NAME):
         '''
         Discover the WiiBoard (1)
 
@@ -78,7 +78,8 @@ class WiiBoard():
             The prefix of the WiiBoard name
         '''
         logger.info("Scan Bluetooth devices for %i seconds...", duration)
-        devices = bluetooth.discover_devices(duration=duration, lookup_names=True)
+        devices = bluetooth.discover_devices(duration=duration, lookup_names=True)	# Returns [] if it doesn't find any
+        logger.debug("Discover devices finished.")
         logger.debug("Found devices: %s", str(devices))
         found_boards = [address for address, name in devices if name.startswith(prefix)]
         if not found_boards or len(found_boards) == 0:

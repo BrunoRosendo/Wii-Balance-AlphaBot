@@ -1,6 +1,7 @@
 from alphabot.Alphabot import Alphabot
 from alphabot.Camera import Camera
-from wii_balance.WiiBoard import ResponseType, WiiBoard 
+from wii_balance.WiiBoard import ResponseType, WiiBoard
+import time
 
 alphabot = Alphabot()
 cam = Camera()
