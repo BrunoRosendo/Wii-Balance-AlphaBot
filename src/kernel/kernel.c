@@ -101,7 +101,7 @@ int setup()
     createPythonTask("connect_to_board", 0, 5000);	// This task should have the higher priority. Since without the connection, the other tasks are useless
     createPythonTask("read_wii_data", 0, 100);
     createPythonTask("drive_alphabot", 0, 100);
-    
+    createPythonTask("honk", 0, 100);
     
     return 0;
 }

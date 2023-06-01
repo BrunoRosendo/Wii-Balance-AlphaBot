@@ -55,7 +55,9 @@ def read_wii_data():
             print(alphabot.vertDirection, alphabot.horizDirection, 
                   alphabot.vertPower, alphabot.horizPower)
         elif respType == ResponseType.BUTTON:
-            print("ola button")
+            print(f"{respType} - {data}")
+            alphabot.setHonk(data)
+            print("Here")
     else:
         print("No Response")
 
@@ -68,5 +70,8 @@ def drive_alphabot():
 def connect_to_board():
     print("Connecting to board...\n\n")
     wiiBoard.connectToBoard()
-
+    
+def honk():
+    print("HONK HONK")
+    alphabot.updateBuzzer()
 # TODO: Detect when the board is disconnected

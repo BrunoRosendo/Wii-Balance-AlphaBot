@@ -37,9 +37,14 @@ class Alphabot:
         # Variables to control the direction of the motors
         self.vertDirection = MovDirection.IDLE # vertical velocity of the robot
         self.horizDirection = MovDirection.IDLE # horizontal velocity of the robot
-
+        
+        # Variable to control if the buzzer should be on or off
+        self.honk = False
+        self.buzzer = 4	# BUZZER PIN
+        
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
+        GPIO.setup(self.buzzer, GPIO.OUT)
         GPIO.setup(self.ain1, GPIO.OUT)
         GPIO.setup(self.ain2, GPIO.OUT)
         GPIO.setup(self.bin1, GPIO.OUT)
@@ -259,6 +264,22 @@ class Alphabot:
                 GPIO.output(self.ain2, GPIO.LOW)
                 GPIO.output(self.bin1, GPIO.LOW)
                 GPIO.output(self.bin2, GPIO.HIGH)
+                
+    def setHonk(self, value):
+        """
+        Sets the value of the honk to True or False
+        """
+        self.honk = value
+        
+    def updateBuzzer(self):
+        """
+        Updates the Buzzer according to the current value of the honk
+        """
+        val = GPIO.LOW
+        if self.honk == True:
+            val = GPIO.HIGH
+        
+        GPIO.output(self.buzzer, val)
 
 
         

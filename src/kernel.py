@@ -1,6 +1,6 @@
 from Task import Task
 import threading
-from tasks import all_actions, init_camera, read_wii_data, drive_alphabot, connect_to_board
+from tasks import all_actions, init_camera, read_wii_data, drive_alphabot, connect_to_board, honk
 import time
 
 timer = None
@@ -69,6 +69,7 @@ def setup():
     Sched_AddTask(connect_to_board, 0, 100)
     Sched_AddTask(read_wii_data, 0, 1)
     Sched_AddTask(drive_alphabot, 0, 1)
+    Sched_AddTask(honk, 0, 1)
 
 def Sched_Interrupt():
     stop_interrupts()

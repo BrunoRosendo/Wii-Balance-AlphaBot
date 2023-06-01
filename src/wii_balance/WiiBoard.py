@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 handler = logging.StreamHandler() # or RotatingFileHandler
 handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
 logger.addHandler(handler)
-logger.setLevel(logging.DEBUG) # or DEBUG
+logger.setLevel(logging.INFO) # or DEBUG
 
 class ResponseType(Enum):
     STATUS = 0
@@ -199,7 +199,7 @@ class WiiBoard():
             # logger.debug(f"byteCodes {byteCodes} {len(data)}")
 
             input_type = data[1] 
-            logger.debug(f"input_type {input_type}")
+            # logger.debug(f"input_type {input_type}")
             if input_type == INPUT_STATUS:
                 if len(data) < 8:
                     return None
