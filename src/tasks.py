@@ -70,11 +70,13 @@ def drive_alphabot():
 def connect_to_board():
     print("Connecting to board...\n\n")
     wiiBoard.connectToBoard()
-    
+
 def honk():
     print("HONK HONK")
     alphabot.updateBuzzer()
 
 def check_collision():
     alphabot.checkCollision()
-# TODO: Detect when the board is disconnected
+
+def drive_forward():
+    alphabot.drive_forward()

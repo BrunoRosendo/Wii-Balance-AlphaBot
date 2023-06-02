@@ -37,7 +37,10 @@ class Alphabot:
         # Variables to control the direction of the motors
         self.vertDirection = MovDirection.IDLE # vertical velocity of the robot
         self.horizDirection = MovDirection.IDLE # horizontal velocity of the robot
-        
+
+        # Variable to check if the alpha is close to colliding
+        self.isColliding = False
+
         # Variable to control if the buzzer should be on or off
         self.honk = False
         self.buzzer = 4	# BUZZER PIN
@@ -212,9 +215,9 @@ class Alphabot:
     def drive(self):
         print("Entered drive...")
         rightMotorPower = 0
-        leftMotorPower = 0
+        leftMotorPower = 0            
 
-        if (self.vertDirection == MovDirection.IDLE and self.horizDirection == MovDirection.IDLE):
+        if (self.vertDirection == MovDirection.IDLE and self.horizDirection == MovDirection.IDLE) or (self.vertDirection == MovDirection.POSITIVE and self.isColliding):
             # Stop
             self.stop()
             return
@@ -241,7 +244,7 @@ class Alphabot:
         else:
            print("Error: Unknown direction")
            return
-        
+
         # Set the power of the motors
         self.pwma.ChangeDutyCycle(leftMotorPower)
         self.pwmb.ChangeDutyCycle(rightMotorPower)
@@ -295,7 +298,7 @@ class Alphabot:
     def checkCollision(self):
         print("left sensor", GPIO.input(self.irLeft))
         print("right sensor", GPIO.input(self.irRight))
-        return not GPIO.input(self.irLeft) or not GPIO.input(self.irRight)
+        self.isColliding = not GPIO.input(self.irLeft) or not GPIO.input(self.irRight)
 
         
 
