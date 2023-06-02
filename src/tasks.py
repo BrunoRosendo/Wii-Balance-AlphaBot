@@ -74,4 +74,7 @@ def connect_to_board():
 def honk():
     print("HONK HONK")
     alphabot.updateBuzzer()
+
+def check_collision():
+    alphabot.checkCollision()
 # TODO: Detect when the board is disconnected

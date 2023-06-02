@@ -22,7 +22,7 @@ powerMap = {
 }
 
 class Alphabot:
-    def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, vertPower=50, horizPower=30):
+    def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, vertPower=50, horizPower=30, irLeft = 16, irRight = 19):
         self.ain1 = ain1 # motor A right forwards
         self.ain2 = ain2 # motor A backwards
         self.bin1 = bin1 # motor B forwards
@@ -42,6 +42,11 @@ class Alphabot:
         self.honk = False
         self.buzzer = 4	# BUZZER PIN
         
+
+        # Variables to control the IR sensors
+        self.irLeft = irLeft
+        self.irRight = irRight
+
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
         GPIO.setup(self.buzzer, GPIO.OUT)
@@ -51,6 +56,8 @@ class Alphabot:
         GPIO.setup(self.bin2, GPIO.OUT)
         GPIO.setup(self.ena, GPIO.OUT)
         GPIO.setup(self.enb, GPIO.OUT)
+        GPIO.setup(self.irLeft, GPIO.IN)
+        GPIO.setup(self.irRight, GPIO.IN)
         self.pwma = GPIO.PWM(self.ena, 500)
         self.pwmb = GPIO.PWM(self.enb, 500)
         self.pwma.start(self.vertPower)
@@ -282,7 +289,13 @@ class Alphabot:
         GPIO.output(self.buzzer, val)
 
 
-        
+    """
+    Checks if the robot will collide with something
+    """
+    def checkCollision(self):
+        print("left sensor", GPIO.input(self.irLeft))
+        print("right sensor", GPIO.input(self.irRight))
+        return not GPIO.input(self.irLeft) or not GPIO.input(self.irRight)
 
         
 

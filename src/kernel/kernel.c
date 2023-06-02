@@ -102,6 +102,7 @@ int setup()
     createPythonTask("read_wii_data", 0, 100);
     createPythonTask("drive_alphabot", 0, 100);
     createPythonTask("honk", 0, 100);
+    createPythonTask("check_collision", 0, 100);
     
     return 0;
 }
