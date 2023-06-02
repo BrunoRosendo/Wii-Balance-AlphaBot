@@ -22,7 +22,7 @@ powerMap = {
 }
 
 class Alphabot:
-    def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, vertPower=50, horizPower=30):
+    def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, vertPower=50, horizPower=30, irLeft = 16, irRight = 19):
         self.ain1 = ain1 # motor A right forwards
         self.ain2 = ain2 # motor A backwards
         self.bin1 = bin1 # motor B forwards
@@ -37,11 +37,19 @@ class Alphabot:
         # Variables to control the direction of the motors
         self.vertDirection = MovDirection.IDLE # vertical velocity of the robot
         self.horizDirection = MovDirection.IDLE # horizontal velocity of the robot
-        
+
+        # Variable to check if the alpha is close to colliding
+        self.isColliding = False
+
         # Variable to control if the buzzer should be on or off
         self.honk = False
         self.buzzer = 4	# BUZZER PIN
         
+
+        # Variables to control the IR sensors
+        self.irLeft = irLeft
+        self.irRight = irRight
+
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
         GPIO.setup(self.buzzer, GPIO.OUT)
@@ -51,6 +59,8 @@ class Alphabot:
         GPIO.setup(self.bin2, GPIO.OUT)
         GPIO.setup(self.ena, GPIO.OUT)
         GPIO.setup(self.enb, GPIO.OUT)
+        GPIO.setup(self.irLeft, GPIO.IN)
+        GPIO.setup(self.irRight, GPIO.IN)
         self.pwma = GPIO.PWM(self.ena, 500)
         self.pwmb = GPIO.PWM(self.enb, 500)
         self.pwma.start(self.vertPower)
@@ -205,9 +215,9 @@ class Alphabot:
     def drive(self):
         print("Entered drive...")
         rightMotorPower = 0
-        leftMotorPower = 0
+        leftMotorPower = 0            
 
-        if (self.vertDirection == MovDirection.IDLE and self.horizDirection == MovDirection.IDLE):
+        if (self.vertDirection == MovDirection.IDLE and self.horizDirection == MovDirection.IDLE) or (self.vertDirection == MovDirection.POSITIVE and self.isColliding):
             # Stop
             self.stop()
             return
@@ -234,7 +244,7 @@ class Alphabot:
         else:
            print("Error: Unknown direction")
            return
-        
+
         # Set the power of the motors
         self.pwma.ChangeDutyCycle(leftMotorPower)
         self.pwmb.ChangeDutyCycle(rightMotorPower)
@@ -282,7 +292,13 @@ class Alphabot:
         GPIO.output(self.buzzer, val)
 
 
-        
+    """
+    Checks if the robot will collide with something
+    """
+    def checkCollision(self):
+        print("left sensor", GPIO.input(self.irLeft))
+        print("right sensor", GPIO.input(self.irRight))
+        self.isColliding = not GPIO.input(self.irLeft) or not GPIO.input(self.irRight)
 
         
 
