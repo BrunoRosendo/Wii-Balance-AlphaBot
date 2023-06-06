@@ -171,6 +171,7 @@ class Alphabot:
             self.horizPower = powerMap["HIGH"]
 
 
+        """
         # ==================
         # Set the direction and power of the motors
         # Decide if movement is vertical or horizontal
@@ -208,12 +209,13 @@ class Alphabot:
             elif horizDiff <= weightThreshold["HIGH"]:
                 self.horizDirection = horizDirection
                 self.horizPower = powerMap["HIGH"]
+            """
 
     """
     Decides the direction of the robot and drives accordingly
     """
     def drive(self):
-        print("Entered drive...")
+        # print("Entered drive...")
         rightMotorPower = 0
         leftMotorPower = 0            
 
@@ -296,8 +298,8 @@ class Alphabot:
     Checks if the robot will collide with something
     """
     def checkCollision(self):
-        print("left sensor", GPIO.input(self.irLeft))
-        print("right sensor", GPIO.input(self.irRight))
+        # print("left sensor", GPIO.input(self.irLeft))
+        # print("right sensor", GPIO.input(self.irRight))
         self.isColliding = not GPIO.input(self.irLeft) or not GPIO.input(self.irRight)
 
         

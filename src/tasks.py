@@ -38,7 +38,7 @@ def init_camera():
     cam.preview()
 
 def read_wii_data():
-    print("Reading wii data......")
+    # print("Reading wii data......")
     # Read the balance board data
     response = wiiBoard.read_data()
     if (response != None):
@@ -62,7 +62,7 @@ def read_wii_data():
         print("No Response")
 
 def drive_alphabot():
-    print("Driving alpha bot.....")
+    # print("Driving alpha bot.....")
     # time.sleep(1)
     # print("Out of sleep")
     alphabot.drive()
@@ -72,7 +72,7 @@ def connect_to_board():
     wiiBoard.connectToBoard()
 
 def honk():
-    print("HONK HONK")
+    # print("HONK HONK")
     alphabot.updateBuzzer()
 
 def check_collision():

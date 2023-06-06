@@ -85,7 +85,7 @@ int pythonInit()
     }
     PyObject* args = PyTuple_New(0);
     // TODO: uncomment this
-    PyObject_CallObject(initCameraFunc, args);
+    // PyObject_CallObject(initCameraFunc, args);
 
     return 0;
 }
