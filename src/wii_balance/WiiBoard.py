@@ -275,7 +275,7 @@ class WiiBoard():
             # logger.debug(f"byteCodes {byteCodes} {len(data)}")
 
             input_type = data[1] 
-            logger.debug(f"input_type | packet size {str(input_type)} | {len(data)}")
+            # logger.debug(f"input_type | packet size {str(input_type)} | {len(data)}")
             if input_type == INPUT_STATUS:
                 if len(data) < 8:
                     return None
@@ -309,7 +309,7 @@ class WiiBoard():
                         return self.on_calibrated()
             elif input_type == EXTENSION_8BYTES:
                 # Handler for Button and Mass data
-                logger.debug("[EXTENSION] EXTENSION_8BYTES")
+                # logger.debug("[EXTENSION] EXTENSION_8BYTES")
                 if (not self.calibrated):   # If not calibrated, ignore
                     logger.info("Not calibrated, ignoring data")
                     continue

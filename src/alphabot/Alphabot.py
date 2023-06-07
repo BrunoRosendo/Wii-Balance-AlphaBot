@@ -1,5 +1,14 @@
 import RPi.GPIO as GPIO
 from enum import Enum
+import logging
+
+# initialize the logger
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler() # or RotatingFileHandler
+handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG) # or DEBUG
+
 
 class MovDirection(Enum):
     POSITIVE = 0
@@ -9,17 +18,20 @@ class MovDirection(Enum):
 # Weights that define the motor velocity
 weightThreshold = {
     "NONE": 5,
-    "LOW": 20,
-    "MEDIUM": 30,
-    "HIGH": 40
+    "LOW": 10,
+    "MEDIUM": 15,
+    "HIGH": 20,
+    "VERY_HIGH": 30
 }
 # Power that defines the motor velocity
 powerMap = {
     "NONE": 0,
-    "LOW": 25,
-    "MEDIUM": 50,
-    "HIGH": 75
+    "LOW": 10,
+    "MEDIUM": 20,
+    "HIGH": 30,
+    "VERY_HIGH": 40
 }
+powerIncrement = powerMap["MEDIUM"] - powerMap["LOW"]
 
 class Alphabot:
     def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, vertPower=50, horizPower=30, irLeft = 16, irRight = 19):
@@ -142,6 +154,7 @@ class Alphabot:
         horizDiff = abs(left - right)
         horizDirection = MovDirection.POSITIVE if right >= left else MovDirection.NEGATIVE if left > right else MovDirection.IDLE
 
+        logger.debug(f"vertDiff {vertDiff} horizDiff {horizDiff}")
         # Decide the vertical movement
         if vertDiff <= weightThreshold["NONE"]: # No movement
             self.vertDirection = MovDirection.IDLE
@@ -155,6 +168,9 @@ class Alphabot:
         elif vertDiff <= weightThreshold["HIGH"]: # High movement
             self.vertDirection = vertDirection
             self.vertPower = powerMap["HIGH"]
+        elif vertDiff <= weightThreshold["VERY_HIGH"]: # Very High movement
+            self.vertDirection = vertDirection
+            self.vertPower = powerMap["VERY_HIGH"]
 
         # Decide the horizontal movement
         if horizDiff <= weightThreshold["NONE"]: # No movement
@@ -169,54 +185,19 @@ class Alphabot:
         elif horizDiff <= weightThreshold["HIGH"]: # High movement
             self.horizDirection = horizDirection
             self.horizPower = powerMap["HIGH"]
-
-
-        # ==================
-        # Set the direction and power of the motors
-        # Decide if movement is vertical or horizontal
-        if vertDiff >= horizDiff:
-            # Reset the horizontal movement
-            self.horizDirection = MovDirection.IDLE
-            self.horizPower = 0
-            # Decide the vertical movement
-            if vertDiff <= weightThreshold["NONE"]: # No movement
-                self.vertDirection = MovDirection.IDLE
-                self.vertPower = 0
-            elif vertDiff <= weightThreshold["LOW"]: # Low movement
-                self.vertDirection = vertDirection
-                self.vertPower = powerMap["LOW"]
-            elif vertDiff <= weightThreshold["MEDIUM"]: # Medium movement
-                self.vertDirection = vertDirection
-                self.vertPower = powerMap["MEDIUM"]
-            elif vertDiff <= weightThreshold["HIGH"]: # High movement
-                self.vertDirection = vertDirection
-                self.vertPower = powerMap["HIGH"]
-        else:
-            # Reset the vertical movement
-            self.vertDirection = MovDirection.IDLE
-            self.vertPower = 0
-            # Decide the horizontal movement
-            if horizDiff <= weightThreshold["NONE"]:
-                self.horizDirection = MovDirection.IDLE
-                self.horizPower = 0
-            elif horizDiff <= weightThreshold["LOW"]:
-                self.horizDirection = horizDirection
-                self.horizPower = powerMap["LOW"]
-            elif horizDiff <= weightThreshold["MEDIUM"]:
-                self.horizDirection = horizDirection
-                self.horizPower = powerMap["MEDIUM"]
-            elif horizDiff <= weightThreshold["HIGH"]:
-                self.horizDirection = horizDirection
-                self.horizPower = powerMap["HIGH"]
+        elif horizDiff <= weightThreshold["VERY_HIGH"]: # Very High movement
+            self.horizDirection = horizDirection
+            self.horizPower = powerMap["VERY_HIGH"]
 
     """
     Decides the direction of the robot and drives accordingly
     """
     def drive(self):
-        print("Entered drive...")
+        # print("Entered drive...")
         rightMotorPower = 0
         leftMotorPower = 0            
-
+        isRotating = False  # True if the robot is rotating. Will be updated inside
+        
         if (self.vertDirection == MovDirection.IDLE and self.horizDirection == MovDirection.IDLE) or (self.vertDirection == MovDirection.POSITIVE and self.isColliding):
             # Stop
             self.stop()
@@ -229,25 +210,32 @@ class Alphabot:
                 # Change the power of the wheels to turn (leftPower > rightPower)
                 leftMotorPower = max(self.vertPower, self.horizPower)
                 rightMotorPower = min(self.vertPower, self.horizPower)
+                if leftMotorPower == rightMotorPower:   # If the powers are equal, force the left motor to be stronger
+                    rightMotorPower -= powerIncrement   # Decrease the power of the right motor
             elif (self.horizDirection == MovDirection.NEGATIVE):
                 # Drive forward and left
                 # Change the power of the wheels to turn (rightPower > leftPower)
                 rightMotorPower = max(self.vertPower, self.horizPower)
                 leftMotorPower = min(self.vertPower, self.horizPower)
+                if leftMotorPower == rightMotorPower:   # If the powers are equal, force the right motor to be stronger
+                    leftMotorPower -= powerIncrement   # Decrease the power of the left motor
             #else:
                 # Drive forward
                 # The motors power is already set
         elif (self.horizDirection != MovDirection.IDLE):
             rightMotorPower = self.horizPower
             leftMotorPower = self.horizPower
+            isRotating = True   # The robot is rotating (special case)
             # The other cases were already set
         else:
-           print("Error: Unknown direction")
+           logger.debug("Error: Unknown direction")
            return
-
+        
+        attenuator = 2 if isRotating else 1 # Attenuate the power of the motors if we are rotating
+        
         # Set the power of the motors
-        self.pwma.ChangeDutyCycle(leftMotorPower)
-        self.pwmb.ChangeDutyCycle(rightMotorPower)
+        self.pwma.ChangeDutyCycle(leftMotorPower / attenuator)
+        self.pwmb.ChangeDutyCycle(rightMotorPower / attenuator)
 
         # Set the direction of the motors
         # The vertical direction determines if we turn on the motor1 or motors2
@@ -296,8 +284,8 @@ class Alphabot:
     Checks if the robot will collide with something
     """
     def checkCollision(self):
-        print("left sensor", GPIO.input(self.irLeft))
-        print("right sensor", GPIO.input(self.irRight))
+        # print("left sensor", GPIO.input(self.irLeft))
+        # print("right sensor", GPIO.input(self.irRight))
         self.isColliding = not GPIO.input(self.irLeft) or not GPIO.input(self.irRight)
 
         
