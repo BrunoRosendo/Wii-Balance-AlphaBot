@@ -1,5 +1,14 @@
 import RPi.GPIO as GPIO
 from enum import Enum
+import logging
+
+# initialize the logger
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler() # or RotatingFileHandler
+handler.setFormatter(logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] %(message)s'))
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG) # or DEBUG
+
 
 class MovDirection(Enum):
     POSITIVE = 0
@@ -145,7 +154,7 @@ class Alphabot:
         horizDiff = abs(left - right)
         horizDirection = MovDirection.POSITIVE if right >= left else MovDirection.NEGATIVE if left > right else MovDirection.IDLE
 
-        print(f"vertDiff {vertDiff} horizDiff {horizDiff}")
+        logger.debug(f"vertDiff {vertDiff} horizDiff {horizDiff}")
         # Decide the vertical movement
         if vertDiff <= weightThreshold["NONE"]: # No movement
             self.vertDirection = MovDirection.IDLE
@@ -219,7 +228,7 @@ class Alphabot:
             isRotating = True   # The robot is rotating (special case)
             # The other cases were already set
         else:
-           print("Error: Unknown direction")
+           logger.debug("Error: Unknown direction")
            return
         
         attenuator = 2 if isRotating else 1 # Attenuate the power of the motors if we are rotating
