@@ -17,11 +17,12 @@ weightThreshold = {
 # Power that defines the motor velocity
 powerMap = {
     "NONE": 0,
-    "LOW": 15,
-    "MEDIUM": 30,
-    "HIGH": 45,
-    "VERY_HIGH": 60
+    "LOW": 10,
+    "MEDIUM": 20,
+    "HIGH": 30,
+    "VERY_HIGH": 40
 }
+powerIncrement = powerMap["MEDIUM"] - powerMap["LOW"]
 
 class Alphabot:
     def __init__(self, ain1=12, ain2=13, bin1=20, bin2=21, ena=6, enb=26, vertPower=50, horizPower=30, irLeft = 16, irRight = 19):
@@ -201,14 +202,14 @@ class Alphabot:
                 leftMotorPower = max(self.vertPower, self.horizPower)
                 rightMotorPower = min(self.vertPower, self.horizPower)
                 if leftMotorPower == rightMotorPower:   # If the powers are equal, force the left motor to be stronger
-                    rightMotorPower -= 15   # Decrease the power of the right motor
+                    rightMotorPower -= powerIncrement   # Decrease the power of the right motor
             elif (self.horizDirection == MovDirection.NEGATIVE):
                 # Drive forward and left
                 # Change the power of the wheels to turn (rightPower > leftPower)
                 rightMotorPower = max(self.vertPower, self.horizPower)
                 leftMotorPower = min(self.vertPower, self.horizPower)
                 if leftMotorPower == rightMotorPower:   # If the powers are equal, force the right motor to be stronger
-                    leftMotorPower -= 15   # Decrease the power of the left motor
+                    leftMotorPower -= powerIncrement   # Decrease the power of the left motor
             #else:
                 # Drive forward
                 # The motors power is already set
