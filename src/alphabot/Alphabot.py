@@ -246,10 +246,14 @@ class Alphabot:
         else:
            print("Error: Unknown direction")
            return
-
+        
+        # Verify if the movement is only rotation (special case where there is only horizontal direction)
+        isRotating = (self.vertDirection == MovDirection.IDLE) and (self.horizDirection != MovDirection.IDLE)
+        attenuator = 2 if isRotating else 1 # Attenuate the power of the motors if we are rotating
+        
         # Set the power of the motors
-        self.pwma.ChangeDutyCycle(leftMotorPower)
-        self.pwmb.ChangeDutyCycle(rightMotorPower)
+        self.pwma.ChangeDutyCycle(leftMotorPower / attenuator)
+        self.pwmb.ChangeDutyCycle(rightMotorPower / attenuator)
 
         # Set the direction of the motors
         # The vertical direction determines if we turn on the motor1 or motors2
