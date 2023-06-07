@@ -144,6 +144,7 @@ class Alphabot:
         horizDiff = abs(left - right)
         horizDirection = MovDirection.POSITIVE if right >= left else MovDirection.NEGATIVE if left > right else MovDirection.IDLE
 
+        print(f"vertDiff {vertDiff} horizDiff {horizDiff}")
         # Decide the vertical movement
         if vertDiff <= weightThreshold["NONE"]: # No movement
             self.vertDirection = MovDirection.IDLE
